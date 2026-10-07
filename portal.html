@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Academic Portal — KPR StudentHub (CO5)</title>
+  <meta name="description" content="KPR Institute of Engineering and Technology — Student Dashboard & Digital Identity Card">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background-color: #F8FAFC; color: #334155; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .portal-hero { background: linear-gradient(145deg, #0B0826 0%, #151040 50%, #1D1456 100%); color: #fff; padding: 2.5rem 1.5rem 4.5rem; }
+    .portal-content-wrapper { max-width: 1140px; margin: -3.5rem auto 4rem; padding: 0 1.5rem; position: relative; z-index: 10; }
+    
+    /* Digital ID Card Styling */
+    .id-card { background: linear-gradient(135deg, #18143F 0%, #0F0B29 100%); color: #fff; border-radius: 18px; padding: 1.75rem; box-shadow: 0 15px 30px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); position: relative; overflow: hidden; }
+    .id-card::after { content: ''; position: absolute; top: -50px; right: -50px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%); }
+    .id-card-photo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #A78BFA; object-fit: cover; }
+    
+    /* Academic Metric Badges */
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .metric-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 1rem; }
+    .metric-icon { width: 44px; height: 44px; border-radius: 10px; background: #EDE9FE; color: #7C3AED; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+    
+    /* Course Progress Cards */
+    .course-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease; }
+    .course-card:hover { border-color: #CBD5E1; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .progress-track { height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-top: 0.4rem; width: 140px; }
+    .progress-fill { height: 100%; background: #10B981; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Top Header ─── -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon">🎓</div>
+        <span>KPR StudentHub</span>
+        <span class="brand-badge">Student Portal</span>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="register.html" class="nav-link">Admissions Form</a></li>
+        <li class="nav-item"><a href="portal.html" class="nav-link active">Student Portal</a></li>
+        <li class="nav-item"><a href="admin.html" class="nav-link">Admin Console</a></li>
+      </ul>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="openReceiptModal()">📄 Print Fee Receipt</button>
+        <button class="btn-signin" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Hero Banner ─── -->
+  <section class="portal-hero">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:0.85rem; color:#A78BFA; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">
+          Question 3 • CO5 Dynamic Profile & File Streaming
+        </div>
+        <h1 style="color:#fff; font-size:2.2rem; margin-bottom:0.3rem;" id="portalStudentHeading">Welcome, Aafridi Ansari</h1>
+        <p style="color:#CBD5E1; font-size:0.95rem;">Enrolled Program: B.E. Computer Science and Engineering (Academic Year 2026-2027)</p>
+      </div>
+      <div>
+        <span class="badge badge-success" style="font-size:0.85rem; padding:0.4rem 0.9rem;">● Session Authenticated</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Portal Main Grid ─── -->
+  <main class="portal-content-wrapper">
+    
+    <!-- Top KPI Metric Cards -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-icon">📊</div>
+        <div>
+          <span style="font-size:0.75rem; color:#64748B; font-weight:600;">CUMULATIVE CGPA</span>
+          <h4 style="font-size:1.35rem; color:#0F172A; margin:0;" id="portalCgpa">8.85 / 10.0</h4>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">📅</div>
+        <div>
+          <span style="font-size:0.75rem; color:#64748B; font-weight:600;">SEMESTER ATTENDANCE</span>
+          <h4 style="font-size:1.35rem; color:#059669; margin:0;" id="portalAttendance">92.5%</h4>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🎓</div>
+        <div>
+          <span style="font-size:0.75rem; color:#64748B; font-weight:600;">TOTAL CREDITS</span>
+          <h4 style="font-size:1.35rem; color:#0F172A; margin:0;">24 / 24 Earned</h4>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">💳</div>
+        <div>
+          <span style="font-size:0.75rem; color:#64748B; font-weight:600;">TUITION FEE STATUS</span>
+          <h4 style="font-size:1.35rem; color:#059669; margin:0;" id="portalFeeStatus">PAID (₹1,75,000)</h4>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 340px 1fr; gap: 1.75rem; align-items: start;">
+      
+      <!-- LEFT: Digital Student Identity Card -->
+      <div>
+        <div class="id-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <div style="font-size:0.82rem; font-weight:700; color:#E0E7FF; letter-spacing:0.04em;">KPR INSTITUTE OF ENGG & TECH</div>
+            <div style="background:#7C3AED; color:#fff; font-size:0.68rem; font-weight:700; padding:0.15rem 0.45rem; border-radius:4px;">ID CARD</div>
+          </div>
+
+          <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.25rem;">
+            <img id="portalIdPhoto" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Student Photo" class="id-card-photo">
+            <div>
+              <h3 style="color:#fff; font-size:1.15rem; margin-bottom:0.2rem;" id="portalIdName">Aafridi Ansari</h3>
+              <div style="font-size:0.8rem; color:#CBD5E1;" id="portalIdRoll">Roll No: 24CS253</div>
+              <div style="font-size:0.75rem; color:#A78BFA; font-weight:600;" id="portalIdDept">CSE • 3rd Year</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.08); border-radius:8px; padding:0.75rem; font-size:0.78rem; line-height:1.6; color:#CBD5E1; margin-bottom:1rem;">
+            <div><strong>Email:</strong> <span id="portalIdEmail">aafridi.ansari@kpriet.ac.in</span></div>
+            <div><strong>Phone:</strong> <span id="portalIdPhone">9876543210</span></div>
+            <div><strong>Blood Group:</strong> O +ve</div>
+          </div>
+
+          <!-- Barcode / QR Simulation -->
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.15);">
+            <div style="font-family:monospace; font-size:0.75rem; letter-spacing:3px; color:#A78BFA;">||||||| | |||| ||| ||||||</div>
+            <button class="btn btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.75rem; background:rgba(255,255,255,0.15); color:#fff; border:none;" onclick="window.print()">Print ID</button>
+          </div>
+        </div>
+
+        <!-- Uploaded Documents Box (Question 3 streaming reference) -->
+        <div class="card" style="margin-top:1.25rem;">
+          <h4 style="font-size:0.95rem; margin-bottom:0.75rem; color:#0F172A;">Verified Uploaded Documents</h4>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; background:#F8FAFC; border-radius:6px; font-size:0.82rem;">
+              <span>📄 Aadhaar_ID_Proof.pdf</span>
+              <a href="#" onclick="alert('Streaming file from Java Servlet: streamFile?fileId=1'); return false;" style="font-size:0.78rem; font-weight:600;">View</a>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; background:#F8FAFC; border-radius:6px; font-size:0.82rem;">
+              <span>📄 HSC_12th_Marksheet.pdf</span>
+              <a href="#" onclick="alert('Streaming file from Java Servlet: streamFile?fileId=2'); return false;" style="font-size:0.78rem; font-weight:600;">View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Enrolled Courses & Academic Record -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Enrolled Academic Courses & Faculty Details</h3>
+            <span class="badge badge-primary">Semester V (Odd Sem 2026)</span>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <strong style="font-size:0.95rem; color:#0F172A;">CS8501 — Web Technology & Cloud Computing</strong>
+              <div style="font-size:0.8rem; color:#64748B;">Faculty: Dr. K. Senthil Kumar • Credits: 4 (Core)</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:0.85rem; font-weight:700; color:#059669;">94.5% Attendance</span>
+              <div class="progress-track"><div class="progress-fill" style="width: 94.5%;"></div></div>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <strong style="font-size:0.95rem; color:#0F172A;">CS8502 — Database Management Systems & SQL</strong>
+              <div style="font-size:0.8rem; color:#64748B;">Faculty: Prof. M. Rajeshwari • Credits: 4 (Core)</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:0.85rem; font-weight:700; color:#059669;">91.0% Attendance</span>
+              <div class="progress-track"><div class="progress-fill" style="width: 91%;"></div></div>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <strong style="font-size:0.95rem; color:#0F172A;">CS8503 — Theory of Computation & Automata</strong>
+              <div style="font-size:0.8rem; color:#64748B;">Faculty: Dr. S. Anitha • Credits: 3 (Core)</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:0.85rem; font-weight:700; color:#059669;">88.5% Attendance</span>
+              <div class="progress-track"><div class="progress-fill" style="width: 88.5%;"></div></div>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <strong style="font-size:0.95rem; color:#0F172A;">CS8504 — Artificial Intelligence & Neural Networks</strong>
+              <div style="font-size:0.8rem; color:#64748B;">Faculty: Dr. P. Prakash • Credits: 3 (Elective)</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:0.85rem; font-weight:700; color:#059669;">96.0% Attendance</span>
+              <div class="progress-track"><div class="progress-fill" style="width: 96%;"></div></div>
+            </div>
+          </div>
+
+          <div class="course-card">
+            <div>
+              <strong style="font-size:0.95rem; color:#0F172A;">CS8511 — Web Applications & Services Laboratory</strong>
+              <div style="font-size:0.8rem; color:#64748B;">Faculty: Prof. A. Vignesh • Credits: 2 (Lab)</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:0.85rem; font-weight:700; color:#059669;">98.0% Attendance</span>
+              <div class="progress-track"><div class="progress-fill" style="width: 98%;"></div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ─── Fee Receipt Modal ─── -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Official Fee Registration Receipt</h3>
+        <button class="modal-close" onclick="closeReceiptModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="printableReceiptArea">
+        <div style="text-align:center; margin-bottom:1.5rem; border-bottom:2px solid #E2E8F0; padding-bottom:1rem;">
+          <h3 style="color:#0F172A; font-size:1.3rem;">KPR INSTITUTE OF ENGINEERING AND TECHNOLOGY</h3>
+          <p style="font-size:0.82rem; color:#64748B; margin:0;">Autonomous Institution • Avinashi Road, Arasur, Coimbatore - 641407</p>
+          <div style="display:inline-block; padding:0.2rem 0.6rem; background:#EDE9FE; color:#7C3AED; font-weight:700; border-radius:4px; font-size:0.75rem; margin-top:0.4rem;">
+            ACADEMIC YEAR 2026-2027 • OFFICIAL RECEIPT
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.85rem; margin-bottom:1.25rem;">
+          <div><strong>Student Name:</strong> <span id="recName">Aafridi Ansari</span></div>
+          <div><strong>Roll Number:</strong> <span id="recRoll">24CS253</span></div>
+          <div><strong>Department:</strong> <span id="recDept">Computer Science</span></div>
+          <div><strong>Payment Date:</strong> <span id="recDate">08-Oct-2026</span></div>
+        </div>
+
+        <table class="custom-table" style="margin-bottom:1.25rem;">
+          <thead>
+            <tr>
+              <th>Fee Component</th>
+              <th style="text-align:right;">Amount (INR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Standard Tuition & Instruction Fee</td>
+              <td style="text-align:right;">₹1,20,000.00</td>
+            </tr>
+            <tr>
+              <td>Laboratory & Tech Infrastructure Fee</td>
+              <td style="text-align:right;">₹15,000.00</td>
+            </tr>
+            <tr>
+              <td>Advanced Elective Course Modules</td>
+              <td style="text-align:right;">₹20,000.00</td>
+            </tr>
+            <tr>
+              <td>Campus Hostel & Accommodation Fee</td>
+              <td style="text-align:right;">₹20,000.00</td>
+            </tr>
+            <tr style="font-weight:700; background:#F8FAFC;">
+              <td>Net Total Paid (Online Bank Transfer)</td>
+              <td style="text-align:right; color:#059669; font-size:1.05rem;" id="recTotal">₹1,75,000.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; padding-top:1rem;">
+          <div style="font-size:0.75rem; color:#64748B;">
+            Status: <span class="badge badge-success">Transaction Settled ✓</span><br>
+            Receipt Ref: KPR/2026/FEE/849201
+          </div>
+          <div style="text-align:center; font-size:0.78rem; color:#334155;">
+            <div style="font-family:cursive; font-size:1.1rem; color:#7C3AED;">A. Ansari / Registrar</div>
+            Authorized Signature
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeReceiptModal()">Close</button>
+        <button class="btn btn-primary" onclick="window.print()">Print Receipt 🖨️</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Load Student Profile from LocalStorage / Session
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentUser = JSON.parse(localStorage.getItem('kpr_current_user') || '{}');
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      
+      let student = students.find(s => s.roll_number === (currentUser.roll_number || '24CS253'));
+      if (!student && students.length > 0) {
+        student = students[0];
+      }
+
+      if (student) {
+        document.getElementById('portalStudentHeading').textContent = `Welcome, ${student.name}`;
+        document.getElementById('portalIdName').textContent = student.name;
+        document.getElementById('portalIdRoll').textContent = `Roll No: ${student.roll_number}`;
+        document.getElementById('portalIdDept').textContent = `${student.department} • ${student.year_of_study || '3rd Year'}`;
+        document.getElementById('portalIdEmail').textContent = student.email;
+        document.getElementById('portalIdPhone').textContent = student.phone;
+        
+        if (student.profile_image) {
+          document.getElementById('portalIdPhoto').src = student.profile_image;
+        }
+
+        if (student.total_fee) {
+          const feeStr = `PAID (₹${student.total_fee.toLocaleString('en-IN')})`;
+          document.getElementById('portalFeeStatus').textContent = feeStr;
+          document.getElementById('recTotal').textContent = `₹${student.total_fee.toLocaleString('en-IN')}.00`;
+        }
+
+        document.getElementById('recName').textContent = student.name;
+        document.getElementById('recRoll').textContent = student.roll_number;
+        document.getElementById('recDept').textContent = student.department;
+      }
+    });
+
+    function openReceiptModal() {
+      document.getElementById('receiptModal').classList.add('active');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.remove('active');
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('kpr_current_user');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

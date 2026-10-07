@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration — KPR StudentHub (CO3)</title>
+  <meta name="description" content="KPR Institute of Engineering and Technology — Student Admission Registration Form">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background-color: #F8FAFC; color: #334155; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .form-hero { background: linear-gradient(145deg, #0B0826 0%, #151040 50%, #1D1456 100%); color: #fff; padding: 3rem 1.5rem 2.5rem; text-align: center; }
+    .form-hero h1 { color: #fff; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-family: 'Outfit', sans-serif; margin-bottom: 0.5rem; }
+    .form-hero p { color: #CBD5E1; font-size: 1rem; max-width: 650px; margin: 0 auto; }
+    .reg-container { max-width: 1040px; margin: -2rem auto 4rem; padding: 0 1.5rem; position: relative; z-index: 10; }
+    .reg-card { background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); padding: 2.5rem; }
+    
+    /* Step Indicator */
+    .step-wizard { display: flex; justify-content: space-between; margin-bottom: 2.5rem; position: relative; }
+    .step-wizard::before { content: ''; position: absolute; top: 18px; left: 40px; right: 40px; height: 2px; background: #E2E8F0; z-index: 1; }
+    .step-node { position: relative; z-index: 2; text-align: center; flex: 1; }
+    .step-circle { width: 38px; height: 38px; border-radius: 50%; background: #F1F5F9; border: 2px solid #CBD5E1; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-weight: 700; font-size: 0.88rem; color: #64748B; transition: all 0.25s ease; }
+    .step-node.active .step-circle { background: #7C3AED; border-color: #7C3AED; color: #fff; box-shadow: 0 0 15px rgba(124,58,237,0.35); }
+    .step-node.completed .step-circle { background: #10B981; border-color: #10B981; color: #fff; }
+    .step-label { font-size: 0.82rem; font-weight: 600; color: #64748B; }
+    .step-node.active .step-label { color: #7C3AED; }
+
+    /* Photo Upload Box */
+    .photo-upload-container { text-align: center; margin-bottom: 2rem; padding: 1.5rem; background: #F8FAFC; border: 2px dashed #CBD5E1; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; }
+    .photo-upload-container:hover { border-color: #7C3AED; background: #FAF5FF; }
+    .photo-preview-circle { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #EDE9FE; margin: 0 auto 0.75rem; overflow: hidden; background: #EDE9FE; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #7C3AED; }
+    .photo-preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Password Strength Meter */
+    .strength-meter { height: 6px; background: #E2E8F0; border-radius: 3px; margin-top: 0.5rem; overflow: hidden; display: flex; }
+    .strength-bar { height: 100%; width: 0%; transition: all 0.3s ease; }
+
+    /* Dynamic Fee Summary Card */
+    .fee-summary-box { background: linear-gradient(135deg, #18143F 0%, #0F0B29 100%); color: #fff; border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; }
+    .fee-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: #CBD5E1; }
+    .fee-total { border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.75rem; margin-top: 0.75rem; display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 700; color: #34D399; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Top Header ─── -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon">🎓</div>
+        <span>KPR StudentHub</span>
+        <span class="brand-badge">Admissions Form</span>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="register.html" class="nav-link active">Admissions Form</a></li>
+        <li class="nav-item"><a href="portal.html" class="nav-link">Student Portal</a></li>
+        <li class="nav-item"><a href="admin.html" class="nav-link">Admin Console</a></li>
+      </ul>
+
+      <div class="header-actions">
+        <a href="portal.html" class="btn-signin">Student Portal</a>
+        <a href="admin.html" class="btn-register-cta">Admin Panel</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Form Hero ─── -->
+  <section class="form-hero">
+    <div class="container">
+      <div style="display:inline-block; padding:0.3rem 0.8rem; background:rgba(255,255,255,0.1); border-radius:100px; font-size:0.8rem; font-weight:600; color:#E0E7FF; margin-bottom:0.8rem;">
+        Assignment Question 1 • CO3 Form Validation & Styling
+      </div>
+      <h1>Student Academic Registration</h1>
+      <p>Complete the official enrollment form below. All fields with asterisk (<span style="color:#EF4444;">*</span>) are strictly validated.</p>
+    </div>
+  </section>
+
+  <!-- ─── Registration Multi-Step Container ─── -->
+  <main class="reg-container">
+    <div class="reg-card">
+      
+      <!-- Wizard Step Header -->
+      <div class="step-wizard">
+        <div class="step-node active" id="stepNode1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Personal Info</div>
+        </div>
+        <div class="step-node" id="stepNode2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Academic Details</div>
+        </div>
+        <div class="step-node" id="stepNode3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Fees & Electives</div>
+        </div>
+        <div class="step-node" id="stepNode4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Account & Uploads</div>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <form id="studentRegistrationForm" novalidate onsubmit="handleRegistrationSubmit(event)">
+        
+        <!-- STEP 1: Personal Information -->
+        <div class="form-step-content" id="stepSection1">
+          <h3 style="font-size:1.25rem; margin-bottom:1.5rem; color:#0F172A; display:flex; align-items:center; gap:0.5rem;">
+            <span>👤</span> Step 1: Personal Information
+          </h3>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group" id="groupFullName">
+              <label class="form-label">Full Name <span class="required">*</span></label>
+              <input type="text" id="regFullName" class="form-control" placeholder="e.g. Aafridi Ansari" value="Aafridi Ansari" required oninput="validateField('regFullName')">
+              <div class="form-error" id="errFullName">Please enter your full name (minimum 3 alphabetic characters).</div>
+            </div>
+
+            <div class="form-group" id="groupRollNumber">
+              <label class="form-label">Roll / Register Number <span class="required">*</span></label>
+              <input type="text" id="regRollNumber" class="form-control" placeholder="e.g. 24CS253" value="24CS253" required oninput="validateField('regRollNumber')">
+              <div class="form-error" id="errRollNumber">Format must be YYXXNNN (e.g., 24CS253).</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group" id="groupEmail">
+              <label class="form-label">Institutional Email <span class="required">*</span></label>
+              <input type="email" id="regEmail" class="form-control" placeholder="e.g. aafridi.ansari@kpriet.ac.in" value="aafridi.ansari@kpriet.ac.in" required oninput="validateField('regEmail')">
+              <div class="form-error" id="errEmail">Please provide a valid institutional email address.</div>
+            </div>
+
+            <div class="form-group" id="groupPhone">
+              <label class="form-label">Mobile Phone Number <span class="required">*</span></label>
+              <input type="tel" id="regPhone" class="form-control" placeholder="e.g. 9876543210" value="9876543210" required oninput="validateField('regPhone')">
+              <div class="form-error" id="errPhone">Enter a valid 10-digit Indian mobile number (starts with 6, 7, 8, or 9).</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group" id="groupDOB">
+              <label class="form-label">Date of Birth <span class="required">*</span></label>
+              <input type="date" id="regDOB" class="form-control" value="2004-05-15" required oninput="validateField('regDOB')">
+              <div class="form-error" id="errDOB">Student age must be between 16 and 60 years old.</div>
+            </div>
+
+            <div class="form-group" id="groupGender">
+              <label class="form-label">Gender <span class="required">*</span></label>
+              <select id="regGender" class="form-control" required onchange="validateField('regGender')">
+                <option value="">Select Gender</option>
+                <option value="Male" selected>Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              <div class="form-error" id="errGender">Please select your gender.</div>
+            </div>
+          </div>
+
+          <div class="form-group" id="groupAddress">
+            <label class="form-label">Permanent Residential Address <span class="required">*</span></label>
+            <textarea id="regAddress" class="form-control" rows="2" placeholder="Street, City, State, PIN Code" required oninput="updateAddressCounter(this); validateField('regAddress')">45 Green Valley Avenue, Coimbatore - 641407</textarea>
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748B; margin-top:0.25rem;">
+              <span class="form-error" id="errAddress">Address must be at least 10 characters long.</span>
+              <span id="addressCharCount">43 / 250 characters</span>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; margin-top:2rem;">
+            <button type="button" class="btn btn-primary" onclick="goToStep(2)">Next: Academic Details →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Academic Details -->
+        <div class="form-step-content" id="stepSection2" style="display:none;">
+          <h3 style="font-size:1.25rem; margin-bottom:1.5rem; color:#0F172A; display:flex; align-items:center; gap:0.5rem;">
+            <span>🏫</span> Step 2: Academic & Department Details
+          </h3>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group" id="groupDepartment">
+              <label class="form-label">Department / Branch <span class="required">*</span></label>
+              <select id="regDepartment" class="form-control" required onchange="updateDepartmentCourses(); validateField('regDepartment'); calculateTotalFee();">
+                <option value="">Select Department</option>
+                <option value="Computer Science and Engineering" selected>B.E. Computer Science and Engineering</option>
+                <option value="Artificial Intelligence and Data Science">B.Tech Artificial Intelligence and Data Science</option>
+                <option value="Electronics and Communication Engineering">B.E. Electronics and Communication</option>
+                <option value="Mechanical Engineering">B.E. Mechanical Engineering</option>
+                <option value="Information Technology">B.Tech Information Technology</option>
+              </select>
+              <div class="form-error" id="errDepartment">Please select your academic department.</div>
+            </div>
+
+            <div class="form-group" id="groupYear">
+              <label class="form-label">Year of Study <span class="required">*</span></label>
+              <select id="regYear" class="form-control" required onchange="validateField('regYear')">
+                <option value="">Select Year</option>
+                <option value="1st Year">1st Year (Freshman)</option>
+                <option value="2nd Year">2nd Year (Sophomore)</option>
+                <option value="3rd Year" selected>3rd Year (Junior)</option>
+                <option value="4th Year">4th Year (Senior)</option>
+              </select>
+              <div class="form-error" id="errYear">Please select your year of study.</div>
+            </div>
+          </div>
+
+          <div class="form-group" id="groupDegreeCourse">
+            <label class="form-label">Degree Program & Specialization <span class="required">*</span></label>
+            <input type="text" id="regDegreeCourse" class="form-control" value="B.E. Computer Science & Engineering (Cloud Specialization)" required readonly>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:2rem;">
+            <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Back to Personal Info</button>
+            <button type="button" class="btn btn-primary" onclick="goToStep(3)">Next: Fees & Electives →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Fees & Electives -->
+        <div class="form-step-content" id="stepSection3" style="display:none;">
+          <h3 style="font-size:1.25rem; margin-bottom:1.5rem; color:#0F172A; display:flex; align-items:center; gap:0.5rem;">
+            <span>💳</span> Step 3: Course Selection & Dynamic Fee Calculation
+          </h3>
+
+          <label class="form-label" style="margin-bottom:0.75rem;">Select Core & Professional Elective Courses:</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+            <label style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; cursor:pointer;">
+              <input type="checkbox" id="courseCS8501" checked disabled>
+              <span style="font-size:0.88rem;"><strong>CS8501:</strong> Web Technology (Core - 4 Credits)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; cursor:pointer;">
+              <input type="checkbox" id="courseCS8502" checked disabled>
+              <span style="font-size:0.88rem;"><strong>CS8502:</strong> Database Management Systems (Core - 4 Credits)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; cursor:pointer;">
+              <input type="checkbox" id="courseElectiveAI" checked onchange="calculateTotalFee()">
+              <span style="font-size:0.88rem;"><strong>CS8504:</strong> Artificial Intelligence & Neural Nets (+₹10,000)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; cursor:pointer;">
+              <input type="checkbox" id="courseElectiveCloud" checked onchange="calculateTotalFee()">
+              <span style="font-size:0.88rem;"><strong>CS8505:</strong> Cloud Computing Architecture (+₹10,000)</span>
+            </label>
+          </div>
+
+          <label class="form-label" style="margin-bottom:0.75rem;">Campus Amenities & Auxiliary Services:</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+            <label style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; cursor:pointer;">
+              <input type="checkbox" id="optHostel" checked onchange="calculateTotalFee()">
+              <span style="font-size:0.88rem;">Campus Hostel & Mess Accommodation (+₹20,000)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; cursor:pointer;">
+              <input type="checkbox" id="optTransport" onchange="calculateTotalFee()">
+              <span style="font-size:0.88rem;">AC College Bus Transportation (+₹15,000)</span>
+            </label>
+          </div>
+
+          <!-- Live Reactive Fee Breakdown Card -->
+          <div class="fee-summary-box">
+            <h4 style="color:#fff; font-size:1.05rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+              <span>💰</span> Dynamic Fee Calculation Summary
+            </h4>
+            <div class="fee-row">
+              <span>Standard Base Tuition Fee:</span>
+              <span id="displayTuitionFee">₹1,20,000.00</span>
+            </div>
+            <div class="fee-row">
+              <span>Laboratory & Examination Fee:</span>
+              <span id="displayLabFee">₹15,000.00</span>
+            </div>
+            <div class="fee-row">
+              <span>Selected Elective Courses Fee:</span>
+              <span id="displayElectivesFee">₹20,000.00</span>
+            </div>
+            <div class="fee-row">
+              <span>Hostel / Transport Amenities:</span>
+              <span id="displayAmenitiesFee">₹20,000.00</span>
+            </div>
+            <div class="fee-total">
+              <span>Net Calculated Annual Fee:</span>
+              <span id="displayTotalFee">₹1,75,000.00</span>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:2rem;">
+            <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Back to Academic Details</button>
+            <button type="button" class="btn btn-primary" onclick="goToStep(4)">Next: Account & Uploads →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Account & Uploads -->
+        <div class="form-step-content" id="stepSection4" style="display:none;">
+          <h3 style="font-size:1.25rem; margin-bottom:1.5rem; color:#0F172A; display:flex; align-items:center; gap:0.5rem;">
+            <span>🔒</span> Step 4: Security Credentials & Document Upload
+          </h3>
+
+          <!-- Photo Drag & Drop / Upload -->
+          <div class="photo-upload-container" onclick="document.getElementById('regPhotoInput').click()">
+            <input type="file" id="regPhotoInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handlePhotoUpload(this)">
+            <div class="photo-preview-circle" id="photoPreviewBox">
+              <span id="photoPlaceholderIcon">📷</span>
+            </div>
+            <strong style="font-size:0.92rem; color:#0F172A; display:block;">Click or Drag Profile Photo Here</strong>
+            <span style="font-size:0.78rem; color:#64748B;">Supported: JPG, PNG, WEBP (Max: 2 MB)</span>
+            <div class="form-error" id="errPhoto" style="margin-top:0.5rem;">Please select a valid image file under 2 MB.</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group" id="groupPassword">
+              <label class="form-label">Account Password <span class="required">*</span></label>
+              <input type="password" id="regPassword" class="form-control" placeholder="Min 8 chars, 1 upper, 1 special" value="Student@123" required oninput="evaluatePasswordStrength(this.value); validateField('regPassword');">
+              <div class="strength-meter">
+                <div class="strength-bar" id="pwdStrengthBar"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-top:0.25rem;">
+                <span id="pwdStrengthText" style="color:#64748B; font-weight:600;">Strength: Weak</span>
+                <span style="color:#64748B;">A-Z, 0-9, @#$%</span>
+              </div>
+              <div class="form-error" id="errPassword">Password must have at least 8 characters, uppercase, number & symbol.</div>
+            </div>
+
+            <div class="form-group" id="groupConfirmPassword">
+              <label class="form-label">Confirm Password <span class="required">*</span></label>
+              <input type="password" id="regConfirmPassword" class="form-control" placeholder="Re-enter password" value="Student@123" required oninput="validateField('regConfirmPassword')">
+              <div class="form-error" id="errConfirmPassword">Passwords do not match.</div>
+            </div>
+          </div>
+
+          <!-- Document Upload for Question 2 / 3 -->
+          <div class="form-group" id="groupDocumentUpload">
+            <label class="form-label">Upload 12th Marksheet / ID Proof (PDF or Image) <span class="required">*</span></label>
+            <input type="file" id="regDocInput" class="form-control" accept=".pdf,.jpg,.png" onchange="handleDocUpload(this)">
+            <div class="form-hint">Accepted formats: PDF, JPG, PNG (Max size: 5 MB)</div>
+          </div>
+
+          <div class="form-group" style="margin-top:1.5rem;">
+            <label style="display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer;">
+              <input type="checkbox" id="regTerms" checked required style="margin-top:4px;">
+              <span style="font-size:0.85rem; color:#475569;">
+                I declare that all information submitted above is true and authentic according to KPR Institute of Engineering and Technology academic guidelines.
+              </span>
+            </label>
+            <div class="form-error" id="errTerms">You must accept the terms and conditions.</div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:2rem;">
+            <button type="button" class="btn btn-secondary" onclick="goToStep(3)">← Back to Fees</button>
+            <button type="submit" class="btn btn-primary" style="padding:0.75rem 2rem; font-size:1rem;">
+              Submit Student Registration ✓
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- ─── Success Confirmation Modal ─── -->
+  <div class="modal-overlay" id="registrationSuccessModal">
+    <div class="modal-card" style="max-width: 500px; text-align: center;">
+      <div class="modal-body" style="padding: 2.5rem;">
+        <div style="width:70px; height:70px; border-radius:50%; background:#ECFDF5; color:#10B981; display:flex; align-items:center; justify-content:center; font-size:2.5rem; margin:0 auto 1.25rem;">
+          ✓
+        </div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #0F172A;">Registration Successful!</h3>
+        <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Your academic student profile has been created and securely synchronized with KPR StudentHub.
+        </p>
+
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 1.25rem; text-align: left; margin-bottom: 1.5rem; font-size: 0.88rem;">
+          <div style="margin-bottom: 0.4rem;"><strong>Student Name:</strong> <span id="modalSuccessName">Aafridi Ansari</span></div>
+          <div style="margin-bottom: 0.4rem;"><strong>Roll Number:</strong> <span id="modalSuccessRoll" style="color: #7C3AED; font-weight: 700;">24CS253</span></div>
+          <div style="margin-bottom: 0.4rem;"><strong>Department:</strong> <span id="modalSuccessDept">Computer Science</span></div>
+          <div><strong>Total Calculated Fee:</strong> <span id="modalSuccessFee" style="color: #059669; font-weight: 700;">₹1,75,000</span></div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="portal.html" class="btn btn-primary" style="flex: 1;">Open Student Portal →</a>
+          <a href="admin.html" class="btn btn-secondary" style="flex: 1;">Admin View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Footer ─── -->
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      <div>© 2026 KPR Institute of Engineering and Technology | Web Technology Assignment 2 (CO3)</div>
+      <div>Author: Aafridi Ansari (24CS253)</div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    let uploadedPhotoBase64 = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+    let uploadedDocName = "Aadhaar_ID_Proof.pdf";
+
+    function goToStep(step) {
+      // Validate current step before advancing
+      if (step > 1) {
+        if (!validateCurrentStep(step - 1)) {
+          return;
+        }
+      }
+
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`stepSection${i}`).style.display = (i === step) ? 'block' : 'none';
+        const node = document.getElementById(`stepNode${i}`);
+        if (i < step) {
+          node.className = 'step-node completed';
+        } else if (i === step) {
+          node.className = 'step-node active';
+        } else {
+          node.className = 'step-node';
+        }
+      }
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    }
+
+    function validateCurrentStep(step) {
+      if (step === 1) {
+        const v1 = validateField('regFullName');
+        const v2 = validateField('regRollNumber');
+        const v3 = validateField('regEmail');
+        const v4 = validateField('regPhone');
+        const v5 = validateField('regDOB');
+        const v6 = validateField('regGender');
+        const v7 = validateField('regAddress');
+        return v1 && v2 && v3 && v4 && v5 && v6 && v7;
+      }
+      if (step === 2) {
+        const v1 = validateField('regDepartment');
+        const v2 = validateField('regYear');
+        return v1 && v2;
+      }
+      return true;
+    }
+
+    function validateField(fieldId) {
+      const input = document.getElementById(fieldId);
+      if (!input) return true;
+      const val = input.value.trim();
+      let isValid = true;
+      let errorId = '';
+
+      if (fieldId === 'regFullName') {
+        isValid = /^[A-Za-z\s.]{3,50}$/.test(val);
+        errorId = 'errFullName';
+      } else if (fieldId === 'regRollNumber') {
+        isValid = /^[A-Za-z0-9]{5,15}$/.test(val);
+        errorId = 'errRollNumber';
+      } else if (fieldId === 'regEmail') {
+        isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val);
+        errorId = 'errEmail';
+      } else if (fieldId === 'regPhone') {
+        isValid = /^[6-9]\d{9}$/.test(val);
+        errorId = 'errPhone';
+      } else if (fieldId === 'regDOB') {
+        if (!val) { isValid = false; }
+        else {
+          const birthYear = new Date(val).getFullYear();
+          const currentYear = new Date().getFullYear();
+          const age = currentYear - birthYear;
+          isValid = (age >= 16 && age <= 60);
+        }
+        errorId = 'errDOB';
+      } else if (fieldId === 'regGender') {
+        isValid = (val !== '');
+        errorId = 'errGender';
+      } else if (fieldId === 'regAddress') {
+        isValid = (val.length >= 10);
+        errorId = 'errAddress';
+      } else if (fieldId === 'regDepartment') {
+        isValid = (val !== '');
+        errorId = 'errDepartment';
+      } else if (fieldId === 'regYear') {
+        isValid = (val !== '');
+        errorId = 'errYear';
+      } else if (fieldId === 'regPassword') {
+        isValid = val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val);
+        errorId = 'errPassword';
+      } else if (fieldId === 'regConfirmPassword') {
+        const p1 = document.getElementById('regPassword').value;
+        isValid = (val === p1 && val.length > 0);
+        errorId = 'errConfirmPassword';
+      }
+
+      const errEl = document.getElementById(errorId);
+      if (!isValid) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        if (errEl) errEl.style.display = 'block';
+      } else {
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        if (errEl) errEl.style.display = 'none';
+      }
+      return isValid;
+    }
+
+    function updateAddressCounter(el) {
+      document.getElementById('addressCharCount').textContent = `${el.value.length} / 250 characters`;
+    }
+
+    function updateDepartmentCourses() {
+      const dept = document.getElementById('regDepartment').value;
+      const degInput = document.getElementById('regDegreeCourse');
+      if (dept.includes('Computer Science')) {
+        degInput.value = 'B.E. Computer Science & Engineering (Cloud Specialization)';
+      } else if (dept.includes('Artificial Intelligence')) {
+        degInput.value = 'B.Tech Artificial Intelligence & Data Science';
+      } else if (dept.includes('Electronics')) {
+        degInput.value = 'B.E. Electronics and Communication Engineering';
+      } else if (dept.includes('Mechanical')) {
+        degInput.value = 'B.E. Mechanical Engineering';
+      } else {
+        degInput.value = 'B.Tech Information Technology';
+      }
+    }
+
+    function calculateTotalFee() {
+      let baseTuition = 120000;
+      let labFee = 15000;
+      let electivesFee = 0;
+      let amenitiesFee = 0;
+
+      if (document.getElementById('courseElectiveAI').checked) electivesFee += 10000;
+      if (document.getElementById('courseElectiveCloud').checked) electivesFee += 10000;
+      if (document.getElementById('optHostel').checked) amenitiesFee += 20000;
+      if (document.getElementById('optTransport').checked) amenitiesFee += 15000;
+
+      const total = baseTuition + labFee + electivesFee + amenitiesFee;
+
+      document.getElementById('displayTuitionFee').textContent = `₹${baseTuition.toLocaleString('en-IN')}.00`;
+      document.getElementById('displayLabFee').textContent = `₹${labFee.toLocaleString('en-IN')}.00`;
+      document.getElementById('displayElectivesFee').textContent = `₹${electivesFee.toLocaleString('en-IN')}.00`;
+      document.getElementById('displayAmenitiesFee').textContent = `₹${amenitiesFee.toLocaleString('en-IN')}.00`;
+      document.getElementById('displayTotalFee').textContent = `₹${total.toLocaleString('en-IN')}.00`;
+
+      return total;
+    }
+
+    function evaluatePasswordStrength(pwd) {
+      const bar = document.getElementById('pwdStrengthBar');
+      const text = document.getElementById('pwdStrengthText');
+
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+      if (score <= 1) {
+        bar.style.width = '25%';
+        bar.style.background = '#EF4444';
+        text.textContent = 'Strength: Weak';
+        text.style.color = '#EF4444';
+      } else if (score === 2 || score === 3) {
+        bar.style.width = '65%';
+        bar.style.background = '#F59E0B';
+        text.textContent = 'Strength: Medium';
+        text.style.color = '#F59E0B';
+      } else if (score === 4) {
+        bar.style.width = '100%';
+        bar.style.background = '#10B981';
+        text.textContent = 'Strength: Strong ✓';
+        text.style.color = '#10B981';
+      }
+    }
+
+    function handlePhotoUpload(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Photo size exceeds 2 MB limit.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedPhotoBase64 = e.target.result;
+          document.getElementById('photoPreviewBox').innerHTML = `<img src="${uploadedPhotoBase64}" alt="Profile Preview">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleDocUpload(input) {
+      if (input.files && input.files[0]) {
+        uploadedDocName = input.files[0].name;
+      }
+    }
+
+    function handleRegistrationSubmit(e) {
+      e.preventDefault();
+
+      const step1Valid = validateCurrentStep(1);
+      const step2Valid = validateCurrentStep(2);
+      const pwdValid = validateField('regPassword');
+      const confirmValid = validateField('regConfirmPassword');
+      const termsValid = document.getElementById('regTerms').checked;
+
+      if (!termsValid) {
+        document.getElementById('errTerms').style.display = 'block';
+      }
+
+      if (!step1Valid || !step2Valid || !pwdValid || !confirmValid || !termsValid) {
+        alert('Please review and correct all validation errors highlighted in the form.');
+        return;
+      }
+
+      const totalFee = calculateTotalFee();
+      const studentData = {
+        name: document.getElementById('regFullName').value.trim(),
+        roll_number: document.getElementById('regRollNumber').value.trim(),
+        email: document.getElementById('regEmail').value.trim(),
+        phone: document.getElementById('regPhone').value.trim(),
+        dob: document.getElementById('regDOB').value,
+        gender: document.getElementById('regGender').value,
+        address: document.getElementById('regAddress').value.trim(),
+        department: document.getElementById('regDepartment').value,
+        year_of_study: document.getElementById('regYear').value,
+        course: document.getElementById('regDegreeCourse').value,
+        profile_image: uploadedPhotoBase64,
+        total_fee: totalFee,
+        fee_status: 'Paid',
+        attendance_pct: 92.5,
+        cgpa: 8.85,
+        uploaded_doc: uploadedDocName,
+        created_at: new Date().toISOString()
+      };
+
+      // Save to LocalStorage synchronized database
+      let students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      const existingIdx = students.findIndex(s => s.roll_number === studentData.roll_number);
+      if (existingIdx >= 0) {
+        students[existingIdx] = studentData;
+      } else {
+        students.unshift(studentData);
+      }
+      localStorage.setItem('kpr_students', JSON.stringify(students));
+      localStorage.setItem('kpr_current_user', JSON.stringify({ role: 'student', roll_number: studentData.roll_number }));
+
+      // Display Success Modal
+      document.getElementById('modalSuccessName').textContent = studentData.name;
+      document.getElementById('modalSuccessRoll').textContent = studentData.roll_number;
+      document.getElementById('modalSuccessDept').textContent = studentData.department;
+      document.getElementById('modalSuccessFee').textContent = `₹${totalFee.toLocaleString('en-IN')}.00`;
+      document.getElementById('registrationSuccessModal').classList.add('active');
+    }
+
+    // Init calculations
+    calculateTotalFee();
+  </script>
+</body>
+</html>

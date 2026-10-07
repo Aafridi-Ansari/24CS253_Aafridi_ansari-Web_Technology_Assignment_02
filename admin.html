@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Management & Analytics Console — KPR StudentHub (CO4)</title>
+  <meta name="description" content="KPR Institute of Engineering and Technology — College Administration & Student Records Management">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background-color: #F8FAFC; color: #334155; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .admin-hero { background: linear-gradient(145deg, #0B0826 0%, #151040 50%, #1D1456 100%); color: #fff; padding: 2.5rem 1.5rem 4.5rem; }
+    .admin-content-wrapper { max-width: 1240px; margin: -3.5rem auto 4rem; padding: 0 1.5rem; position: relative; z-index: 10; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .stat-title { font-size: 0.78rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-val { font-size: 1.75rem; font-weight: 800; color: #0F172A; }
+
+    /* Filter & Action Toolbar */
+    .toolbar-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+    .search-box-admin { flex: 1; min-width: 250px; position: relative; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Top Header ─── -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon">🎓</div>
+        <span>KPR StudentHub</span>
+        <span class="brand-badge" style="background:#EDE9FE; color:#7C3AED;">Admin Console</span>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="register.html" class="nav-link">Admissions Form</a></li>
+        <li class="nav-item"><a href="portal.html" class="nav-link">Student Portal</a></li>
+        <li class="nav-item"><a href="admin.html" class="nav-link active">Admin Console</a></li>
+      </ul>
+
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="openAddStudentModal()">+ Add New Student</button>
+        <button class="btn-signin" onclick="window.location.href='index.html'">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Hero Banner ─── -->
+  <section class="admin-hero">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <div style="font-size:0.85rem; color:#A78BFA; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">
+          Question 2 • CO4 College Admin Panel & MySQL CRUD Operations
+        </div>
+        <h1 style="color:#fff; font-size:2.2rem; margin-bottom:0.3rem;">Student Records & Analytics Dashboard</h1>
+        <p style="color:#CBD5E1; font-size:0.95rem;">Manage student enrollment data, inspect uploaded files, analyze department metrics, and export data.</p>
+      </div>
+      <div style="display:flex; gap:0.6rem;">
+        <button class="btn btn-secondary" onclick="exportDataToCSV()" style="font-size:0.85rem;">📥 Export CSV</button>
+        <button class="btn btn-secondary" onclick="exportDataToJSON()" style="font-size:0.85rem;">📥 Export JSON</button>
+        <button class="btn btn-secondary" onclick="resetDemoData()" style="font-size:0.85rem; color:#DC2626;">🔄 Reset Demo Data</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Admin Content ─── -->
+  <main class="admin-content-wrapper">
+    
+    <!-- Top Statistics KPI Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">TOTAL REGISTERED STUDENTS</span>
+          <span class="badge badge-primary">Active</span>
+        </div>
+        <div class="stat-val" id="statTotalStudents">3</div>
+        <div style="font-size:0.8rem; color:#059669; margin-top:0.3rem;">↑ 100% Enrollment Complete</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">ANNUAL TUITION REVENUE</span>
+          <span class="badge badge-success">Fee Status</span>
+        </div>
+        <div class="stat-val" id="statTotalRevenue" style="color:#059669;">₹4,65,000</div>
+        <div style="font-size:0.8rem; color:#64748B; margin-top:0.3rem;">Real-time Dynamic Fee Calculated</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">ACADEMIC DEPARTMENTS</span>
+          <span class="badge badge-info">Programs</span>
+        </div>
+        <div class="stat-val" id="statTotalDepts">5</div>
+        <div style="font-size:0.8rem; color:#64748B; margin-top:0.3rem;">CSE, AI&DS, ECE, MECH, IT</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">AVERAGE CAMPUS ATTENDANCE</span>
+          <span class="badge badge-warning">Audit</span>
+        </div>
+        <div class="stat-val" id="statAvgAttendance">93.2%</div>
+        <div style="font-size:0.8rem; color:#059669; margin-top:0.3rem;">Above 75% Regulatory Minimum</div>
+      </div>
+    </div>
+
+    <!-- Live Department Distribution Canvas Vector Chart -->
+    <div class="card" style="margin-bottom: 1.75rem;">
+      <div class="card-header">
+        <h3 class="card-title">Live Student Enrollment by Academic Department</h3>
+        <span class="badge badge-primary">HTML5 Canvas Real-Time Rendering</span>
+      </div>
+      <div style="height: 240px; position: relative;">
+        <canvas id="deptChartCanvas" style="width:100%; height:100%;"></canvas>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="toolbar-card">
+      <div class="search-box-admin">
+        <input type="text" id="adminSearchInput" class="form-control" placeholder="🔍 Search by student name, roll number, or email..." oninput="filterAdminStudents()">
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <select id="filterDeptSelect" class="form-control" style="width: auto; min-width: 180px;" onchange="filterAdminStudents()">
+          <option value="">All Departments</option>
+          <option value="Computer Science">Computer Science</option>
+          <option value="Artificial Intelligence">AI & Data Science</option>
+          <option value="Electronics">Electronics (ECE)</option>
+          <option value="Mechanical">Mechanical Engg</option>
+          <option value="Information Technology">Information Tech</option>
+        </select>
+
+        <select id="filterYearSelect" class="form-control" style="width: auto;" onchange="filterAdminStudents()">
+          <option value="">All Years</option>
+          <option value="1st Year">1st Year</option>
+          <option value="2nd Year">2nd Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="4th Year">4th Year</option>
+        </select>
+
+        <select id="filterGenderSelect" class="form-control" style="width: auto;" onchange="filterAdminStudents()">
+          <option value="">All Genders</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Student Records Master Table (CRUD Read/View/Edit/Delete) -->
+    <div class="table-responsive">
+      <table class="custom-table" id="adminStudentTable">
+        <thead>
+          <tr>
+            <th>Student Profile</th>
+            <th>Roll Number</th>
+            <th>Department</th>
+            <th>Year</th>
+            <th>Fee Amount</th>
+            <th>Status</th>
+            <th style="text-align: right;">CRUD Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody">
+          <!-- Populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- ─── Modal: View Student Full Profile & Files ─── -->
+  <div class="modal-overlay" id="viewStudentModal">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="viewModalTitle">Student Profile Details</h3>
+        <button class="modal-close" onclick="closeModal('viewStudentModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="viewModalBody">
+        <!-- Injected via JavaScript -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('viewStudentModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Modal: Add / Edit Student ─── -->
+  <div class="modal-overlay" id="studentFormModal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="formModalTitle">Add New Student Record</h3>
+        <button class="modal-close" onclick="closeModal('studentFormModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="adminEditForm" onsubmit="handleSaveStudent(event)">
+          <input type="hidden" id="editOriginalRoll">
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="adminFormName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Roll Number</label>
+              <input type="text" id="adminFormRoll" class="form-control" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="adminFormEmail" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="adminFormPhone" class="form-control" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <select id="adminFormDept" class="form-control" required>
+                <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                <option value="Artificial Intelligence and Data Science">Artificial Intelligence & Data Science</option>
+                <option value="Electronics and Communication Engineering">Electronics and Communication</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Information Technology">Information Technology</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Year of Study</label>
+              <select id="adminFormYear" class="form-control" required>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Calculated Fee (INR)</label>
+            <input type="number" id="adminFormFee" class="form-control" value="165000" required>
+          </div>
+
+          <div class="modal-footer" style="padding:0; margin-top:1.5rem; background:transparent; border:none;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('studentFormModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Student Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check for search query param
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchParam = urlParams.get('search');
+      if (searchParam) {
+        document.getElementById('adminSearchInput').value = searchParam;
+      }
+      renderAdminDashboard();
+    });
+
+    function renderAdminDashboard() {
+      let students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      if (students.length === 0) {
+        resetDemoData();
+        students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      }
+
+      // Update KPI Statistics
+      document.getElementById('statTotalStudents').textContent = students.length;
+      let totalRev = students.reduce((acc, s) => acc + (Number(s.total_fee) || 165000), 0);
+      document.getElementById('statTotalRevenue').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+
+      filterAdminStudents();
+      renderDepartmentChart(students);
+    }
+
+    function filterAdminStudents() {
+      const q = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+      const dept = document.getElementById('filterDeptSelect').value;
+      const year = document.getElementById('filterYearSelect').value;
+      const gender = document.getElementById('filterGenderSelect').value;
+
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      const filtered = students.filter(s => {
+        const matchesQuery = !q || 
+          s.name.toLowerCase().includes(q) || 
+          s.roll_number.toLowerCase().includes(q) || 
+          s.email.toLowerCase().includes(q);
+        const matchesDept = !dept || s.department.includes(dept);
+        const matchesYear = !year || s.year_of_study === year;
+        const matchesGender = !gender || (s.gender && s.gender.toLowerCase() === gender.toLowerCase());
+
+        return matchesQuery && matchesDept && matchesYear && matchesGender;
+      });
+
+      const tbody = document.getElementById('studentTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:#64748B;">No students found matching your criteria.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(s => `
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <img src="${s.profile_image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+              <div>
+                <strong style="color:#0F172A;">${s.name}</strong>
+                <div style="font-size:0.75rem; color:#64748B;">${s.email}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-primary">${s.roll_number}</span></td>
+          <td>${s.department}</td>
+          <td>${s.year_of_study || '3rd Year'}</td>
+          <td><strong style="color:#059669;">₹${(Number(s.total_fee) || 165000).toLocaleString('en-IN')}</strong></td>
+          <td><span class="badge badge-success">Enrolled</span></td>
+          <td style="text-align:right;">
+            <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.75rem;" onclick="viewStudentDetails('${s.roll_number}')">👁️ View</button>
+            <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.75rem;" onclick="openEditStudentModal('${s.roll_number}')">✏️ Edit</button>
+            <button class="btn btn-danger" style="padding:0.35rem 0.65rem; font-size:0.75rem;" onclick="deleteStudent('${s.roll_number}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDepartmentChart(students) {
+      const canvas = document.getElementById('deptChartCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      // Set resolution
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      // Aggregate
+      const counts = { 'CSE': 0, 'AI&DS': 0, 'ECE': 0, 'MECH': 0, 'IT': 0 };
+      students.forEach(s => {
+        if (s.department.includes('Computer Science')) counts['CSE']++;
+        else if (s.department.includes('Artificial')) counts['AI&DS']++;
+        else if (s.department.includes('Electronics')) counts['ECE']++;
+        else if (s.department.includes('Mechanical')) counts['MECH']++;
+        else counts['IT']++;
+      });
+
+      const depts = Object.keys(counts);
+      const values = Object.values(counts);
+      const maxVal = Math.max(...values, 5);
+
+      const chartW = rect.width - 80;
+      const chartH = rect.height - 60;
+      const barWidth = chartW / depts.length - 30;
+
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      // Draw Grid Lines
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = 20 + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(50, y);
+        ctx.lineTo(rect.width - 20, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), 42, y + 4);
+      }
+
+      // Draw Bars
+      depts.forEach((dept, idx) => {
+        const x = 65 + idx * (barWidth + 30);
+        const val = values[idx];
+        const barH = (val / maxVal) * chartH;
+        const y = 20 + (chartH - barH);
+
+        // Bar Gradient
+        const grad = ctx.createLinearGradient(0, y, 0, y + barH);
+        grad.addColorStop(0, '#7C3AED');
+        grad.addColorStop(1, '#6366F1');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barH, [6, 6, 0, 0]);
+        ctx.fill();
+
+        // Label Value
+        ctx.fillStyle = '#0F172A';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(val, x + barWidth / 2, y - 6);
+
+        // Dept Name
+        ctx.fillStyle = '#64748B';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.fillText(dept, x + barWidth / 2, chartH + 42);
+      });
+    }
+
+    function viewStudentDetails(roll) {
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      const s = students.find(item => item.roll_number === roll);
+      if (!s) return;
+
+      document.getElementById('viewModalTitle').textContent = `Student Profile: ${s.name} (${s.roll_number})`;
+      document.getElementById('viewModalBody').innerHTML = `
+        <div style="display:flex; gap:1.5rem; align-items:center; margin-bottom:1.5rem; background:#F8FAFC; padding:1.25rem; border-radius:12px;">
+          <img src="${s.profile_image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid #EDE9FE;">
+          <div>
+            <h3 style="color:#0F172A; font-size:1.3rem; margin:0 0 0.3rem;">${s.name}</h3>
+            <span class="badge badge-primary">${s.roll_number}</span>
+            <span class="badge badge-success">Fee: ₹${(Number(s.total_fee) || 165000).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <table class="custom-table">
+          <tbody>
+            <tr><th>Department</th><td>${s.department}</td></tr>
+            <tr><th>Email Address</th><td>${s.email}</td></tr>
+            <tr><th>Phone Number</th><td>${s.phone}</td></tr>
+            <tr><th>Year of Study</th><td>${s.year_of_study || '3rd Year'}</td></tr>
+            <tr><th>Gender / DOB</th><td>${s.gender || 'Male'} • ${s.dob || '2004-05-15'}</td></tr>
+            <tr><th>Residential Address</th><td>${s.address || 'Coimbatore, Tamil Nadu'}</td></tr>
+            <tr><th>Uploaded Document</th><td>📄 ${s.uploaded_doc || 'Aadhaar_ID_Proof.pdf'} (<a href="#" onclick="alert('Streaming file via Java Servlet'); return false;">Stream File</a>)</td></tr>
+          </tbody>
+        </table>
+      `;
+      document.getElementById('viewStudentModal').classList.add('active');
+    }
+
+    function openAddStudentModal() {
+      document.getElementById('formModalTitle').textContent = 'Add New Student Record';
+      document.getElementById('editOriginalRoll').value = '';
+      document.getElementById('adminFormName').value = '';
+      document.getElementById('adminFormRoll').value = '';
+      document.getElementById('adminFormEmail').value = '';
+      document.getElementById('adminFormPhone').value = '';
+      document.getElementById('adminFormFee').value = '165000';
+      document.getElementById('studentFormModal').classList.add('active');
+    }
+
+    function openEditStudentModal(roll) {
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      const s = students.find(item => item.roll_number === roll);
+      if (!s) return;
+
+      document.getElementById('formModalTitle').textContent = `Edit Student: ${s.name}`;
+      document.getElementById('editOriginalRoll').value = s.roll_number;
+      document.getElementById('adminFormName').value = s.name;
+      document.getElementById('adminFormRoll').value = s.roll_number;
+      document.getElementById('adminFormEmail').value = s.email;
+      document.getElementById('adminFormPhone').value = s.phone;
+      document.getElementById('adminFormDept').value = s.department;
+      document.getElementById('adminFormYear').value = s.year_of_study || '3rd Year';
+      document.getElementById('adminFormFee').value = s.total_fee || 165000;
+      document.getElementById('studentFormModal').classList.add('active');
+    }
+
+    function handleSaveStudent(e) {
+      e.preventDefault();
+      const origRoll = document.getElementById('editOriginalRoll').value;
+      let students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+
+      const studentData = {
+        name: document.getElementById('adminFormName').value.trim(),
+        roll_number: document.getElementById('adminFormRoll').value.trim(),
+        email: document.getElementById('adminFormEmail').value.trim(),
+        phone: document.getElementById('adminFormPhone').value.trim(),
+        department: document.getElementById('adminFormDept').value,
+        year_of_study: document.getElementById('adminFormYear').value,
+        total_fee: Number(document.getElementById('adminFormFee').value),
+        fee_status: 'Paid',
+        profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
+      };
+
+      if (origRoll) {
+        const idx = students.findIndex(s => s.roll_number === origRoll);
+        if (idx >= 0) students[idx] = Object.assign(students[idx], studentData);
+      } else {
+        students.unshift(studentData);
+      }
+
+      localStorage.setItem('kpr_students', JSON.stringify(students));
+      closeModal('studentFormModal');
+      renderAdminDashboard();
+    }
+
+    function deleteStudent(roll) {
+      if (confirm(`Are you sure you want to remove student record ${roll}?`)) {
+        let students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+        students = students.filter(s => s.roll_number !== roll);
+        localStorage.setItem('kpr_students', JSON.stringify(students));
+        renderAdminDashboard();
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function exportDataToCSV() {
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      let csv = 'Roll Number,Name,Email,Phone,Department,Year,Total Fee\n';
+      students.forEach(s => {
+        csv += `"${s.roll_number}","${s.name}","${s.email}","${s.phone}","${s.department}","${s.year_of_study || '3rd Year'}","${s.total_fee || 165000}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `kpr_students_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+    }
+
+    function exportDataToJSON() {
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      const blob = new Blob([JSON.stringify(students, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `kpr_students_${new Date().toISOString().slice(0,10)}.json`;
+      link.click();
+    }
+  </script>
+</body>
+</html>

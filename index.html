@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPR StudentHub — Academic Admission & Student Management Portal</title>
+  <meta name="description" content="KPR Institute of Engineering and Technology — Modern Student Academic Management System">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Inline Fallback Safety Styles */
+    body { background-color: #F8FAFC; color: #334155; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    .hero-section { background: linear-gradient(145deg, #0B0826 0%, #151040 50%, #1D1456 100%); color: #fff; padding: 4rem 1.5rem 3.5rem; text-align: center; }
+    .hero-title { font-size: clamp(2rem, 4vw, 3.2rem); font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; margin-bottom: 0.8rem; }
+    .hero-subtitle { color: #CBD5E1; font-size: 1.1rem; max-width: 750px; margin: 0 auto 2rem; }
+    .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.75rem; margin-top: 2.5rem; }
+    .portal-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 2rem; transition: all 0.25s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .portal-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -3px rgba(0,0,0,0.08); border-color: #CBD5E1; }
+    .portal-card-icon { width: 50px; height: 50px; border-radius: 12px; background: #EDE9FE; color: #7C3AED; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Hostinger-Inspired Top Navigation Bar ─── -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-icon">🎓</div>
+        <span>KPR StudentHub</span>
+        <span class="brand-badge">Autonomous</span>
+      </a>
+
+      <!-- Navigation Menu -->
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link active">Home</a>
+        </li>
+        <li class="nav-item">
+          <a href="register.html" class="nav-link">Admissions Form</a>
+        </li>
+        <li class="nav-item">
+          <a href="portal.html" class="nav-link">Student Portal</a>
+        </li>
+        <li class="nav-item">
+          <a href="admin.html" class="nav-link">Admin Console</a>
+        </li>
+        
+        <!-- Developer Tools Mega-Menu (Matches Hostinger Image 5) -->
+        <li class="nav-item">
+          <a href="#developers" class="nav-link">
+            Developer Tools
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+          </a>
+          <div class="mega-menu">
+            <div>
+              <div class="mega-col-title">Core Developer APIs & Architecture</div>
+              <div class="mega-grid">
+                <a href="register.html" class="mega-item">
+                  <div class="mega-icon">📝</div>
+                  <div class="mega-info">
+                    <h5>Client-Side Validation</h5>
+                    <p>Question 1 (CO3) HTML5, regex, password strength & fees.</p>
+                  </div>
+                </a>
+                <a href="php/admin_crud.php" class="mega-item">
+                  <div class="mega-icon">🐘</div>
+                  <div class="mega-info">
+                    <h5>PHP MySQL CRUD API</h5>
+                    <p>Question 2 (CO4) REST endpoints for student records & files.</p>
+                  </div>
+                </a>
+                <a href="servlet/StudentServlet.java" class="mega-item">
+                  <div class="mega-icon">☕</div>
+                  <div class="mega-info">
+                    <h5>Java Servlet & JDBC</h5>
+                    <p>Question 3 (CO5) Streaming servlet, session security & JSP.</p>
+                  </div>
+                </a>
+                <a href="sql/schema.sql" class="mega-item">
+                  <div class="mega-icon">🗄️</div>
+                  <div class="mega-info">
+                    <h5>Relational SQL Schema</h5>
+                    <p>Normalized 3NF MySQL database schema & sample datasets.</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="mega-banner-card">
+              <div>
+                <span class="mega-banner-badge">Academic Architecture</span>
+                <h4>Web Technology Assignment 2</h4>
+                <p>Engineered for KPR Institute of Engineering & Technology (Course Code: U21CS501).</p>
+              </div>
+              <a href="register.html" class="btn btn-primary" style="align-self: flex-start; font-size: 0.82rem; padding: 0.45rem 1rem;">Launch Portal</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Action Items on Right -->
+      <div class="header-actions">
+        <button class="btn-ai-agent" onclick="openSearchModal()">
+          <span>✨</span>
+          <span>AI Search</span>
+        </button>
+        <div class="lang-select">🌐 EN</div>
+        <button class="btn-signin" onclick="openLoginModal()">Sign In</button>
+        <a href="register.html" class="btn-register-cta">Register Now</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Hero Section (Hostinger Image 4 Style) ─── -->
+  <section class="hero-section">
+    <div class="container hero-content">
+      <div class="hero-tag">
+        <span>⭐</span> Web Technology Academic Management System
+      </div>
+      <h1 class="hero-title">Student Admission & Academic Hub</h1>
+      <p class="hero-subtitle">
+        Explore modern student admissions, real-time reactive registration, personalized student profile portal, and comprehensive administrative analytics.
+      </p>
+
+      <!-- Pill Search Bar with Instant Autocomplete -->
+      <div class="hero-search-wrapper">
+        <div class="hero-search-bar">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input type="text" id="globalSearchInput" class="hero-search-input" placeholder="Search students by name, roll no, department, or course..." oninput="handleLiveSearch(this.value)">
+          <button class="hero-search-btn" onclick="executeGlobalSearch()">Search</button>
+        </div>
+        <div id="searchResultsDropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border-radius:12px; margin-top:8px; box-shadow:var(--shadow-xl); border:1px solid #E2E8F0; z-index:100; text-align:left; max-height:280px; overflow-y:auto;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Filter Pills Strip (Hostinger Style) ─── -->
+  <nav class="filter-strip">
+    <div class="container filter-strip-inner">
+      <ul class="filter-tabs">
+        <li><button class="filter-tab-btn active" onclick="filterHomeCards('all', this)">All Modules</button></li>
+        <li><button class="filter-tab-btn" onclick="filterHomeCards('admissions', this)">Admissions (CO3)</button></li>
+        <li><button class="filter-tab-btn" onclick="filterHomeCards('admin', this)">Admin CRUD (CO4)</button></li>
+        <li><button class="filter-tab-btn" onclick="filterHomeCards('portal', this)">Student Portal (CO5)</button></li>
+        <li><button class="filter-tab-btn" onclick="filterHomeCards('database', this)">Database Schema</button></li>
+      </ul>
+      <div style="font-size:0.85rem; font-weight:600; color:var(--brand-violet);">
+        Student: Aafridi Ansari (24CS253)
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Main Portal Cards Grid ─── -->
+  <main class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h2 style="font-size: 1.85rem; margin-bottom: 0.5rem;">Interactive Academic Modules</h2>
+      <p style="color: var(--text-muted);">Choose a module below to test and evaluate the assignment scenarios.</p>
+    </div>
+
+    <div class="portal-grid" id="portalCardsContainer">
+      <!-- Card 1: Question 1 Registration -->
+      <div class="portal-card" data-category="admissions">
+        <div class="portal-card-icon">📝</div>
+        <span class="badge badge-primary" style="margin-bottom: 0.75rem;">Question 1 • CO3</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.6rem; color: var(--text-dark);">Student Registration Form</h3>
+        <p style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Full-featured registration form with real-time regex validation (Name, Roll, Email, Phone, DOB/Age), dynamic fee calculator, password strength meter, and photo upload preview.
+        </p>
+        <a href="register.html" class="btn btn-primary" style="width: 100%;">Open Registration Form →</a>
+      </div>
+
+      <!-- Card 2: Question 3 Student Portal -->
+      <div class="portal-card" data-category="portal">
+        <div class="portal-card-icon">🎓</div>
+        <span class="badge badge-success" style="margin-bottom: 0.75rem;">Question 3 • CO5</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.6rem; color: var(--text-dark);">Student Profile & ID Portal</h3>
+        <p style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          View authenticated student dashboard, printable digital ID card, GPA statistics, attendance progress bars, enrolled courses, and download formal registration fee receipts.
+        </p>
+        <a href="portal.html" class="btn btn-secondary" style="width: 100%;">Access Student Portal →</a>
+      </div>
+
+      <!-- Card 3: Question 2 Admin Management -->
+      <div class="portal-card" data-category="admin">
+        <div class="portal-card-icon">📊</div>
+        <span class="badge badge-info" style="margin-bottom: 0.75rem;">Question 2 • CO4</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.6rem; color: var(--text-dark);">Admin Analytics & CRUD Panel</h3>
+        <p style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Complete admin panel to Add, Edit, Delete, and View student profiles, live departmental Canvas chart, multi-filtering, search, and instant CSV/JSON exports.
+        </p>
+        <a href="admin.html" class="btn btn-secondary" style="width: 100%;">Open Admin Panel →</a>
+      </div>
+
+      <!-- Card 4: Java Servlet / JSP Backend -->
+      <div class="portal-card" data-category="portal">
+        <div class="portal-card-icon">☕</div>
+        <span class="badge badge-warning" style="margin-bottom: 0.75rem;">Backend Architecture</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.6rem; color: var(--text-dark);">Servlet & JSP Integration</h3>
+        <p style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Java Servlet connected to MySQL via JDBC, streaming profile images/documents with MIME headers, looping logic, and session security verification.
+        </p>
+        <a href="servlet/StudentServlet.java" class="btn btn-secondary" style="width: 100%;">View Servlet Source →</a>
+      </div>
+
+      <!-- Card 5: PHP MySQL File Upload Backend -->
+      <div class="portal-card" data-category="admin">
+        <div class="portal-card-icon">🐘</div>
+        <span class="badge badge-primary" style="margin-bottom: 0.75rem;">Backend Architecture</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.6rem; color: var(--text-dark);">PHP Upload & Metadata</h3>
+        <p style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          PHP upload handler verifying MIME formats, size limits, preventing overwriting with unique timestamps, and storing file metadata in MySQL.
+        </p>
+        <a href="php/upload_handler.php" class="btn btn-secondary" style="width: 100%;">View PHP Scripts →</a>
+      </div>
+
+      <!-- Card 6: Assignment Report & Docs -->
+      <div class="portal-card" data-category="database">
+        <div class="portal-card-icon">📄</div>
+        <span class="badge badge-success" style="margin-bottom: 0.75rem;">Documentation</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.6rem; color: var(--text-dark);">Word Report & Documentation</h3>
+        <p style="color: var(--text-body); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Standard Calibri 14pt/12pt report with full source code, test cases, architecture diagrams, and space for GitHub link & screenshots.
+        </p>
+        <a href="Report/Web_Technology_Assignment_2_Report.docx" class="btn btn-secondary" style="width: 100%;">Download .docx Report</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- ─── Quick Sign In Modal ─── -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Sign In to KPR StudentHub</h3>
+        <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; background:#F1F5F9; padding:4px; border-radius:8px;">
+          <button id="tabStudentLogin" class="btn" style="flex:1; padding:0.45rem; font-size:0.85rem; background:#7C3AED; color:#fff;" onclick="switchLoginTab('student')">Student</button>
+          <button id="tabAdminLogin" class="btn" style="flex:1; padding:0.45rem; font-size:0.85rem; background:transparent; color:#64748B;" onclick="switchLoginTab('admin')">Admin</button>
+        </div>
+
+        <form id="modalLoginForm" onsubmit="handleQuickLogin(event)">
+          <div class="form-group">
+            <label class="form-label" id="loginIdLabel">Roll Number or Email</label>
+            <input type="text" id="loginUserId" class="form-control" placeholder="e.g. 24CS253" value="24CS253" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" value="Student@123" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Sign In</button>
+        </form>
+
+        <div style="margin-top: 1.25rem; padding: 0.75rem; background: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0; font-size: 0.8rem; color: #64748B;">
+          <strong>Demo Credentials:</strong><br>
+          • Student: <span style="font-family:monospace; color:#7C3AED; font-weight:600;">24CS253</span> / <span style="font-family:monospace;">Student@123</span><br>
+          • Admin: <span style="font-family:monospace; color:#7C3AED; font-weight:600;">admin</span> / <span style="font-family:monospace;">Admin@123</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Footer ─── -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <div class="brand-logo" style="color: #fff; margin-bottom: 1rem;">
+          <div class="brand-icon">🎓</div>
+          <span>KPR StudentHub</span>
+        </div>
+        <p style="color: #94A3B8; font-size: 0.88rem; max-width: 320px;">
+          Autonomous academic management system developed for Web Technology Assignment 2 (U21CS501).
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Modules</h4>
+        <ul class="footer-links">
+          <li><a href="register.html">Admissions Form</a></li>
+          <li><a href="portal.html">Student Dashboard</a></li>
+          <li><a href="admin.html">Admin Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Architecture</h4>
+        <ul class="footer-links">
+          <li><a href="php/admin_crud.php">PHP MySQL API</a></li>
+          <li><a href="servlet/StudentServlet.java">Java Servlet</a></li>
+          <li><a href="sql/schema.sql">Database DDL</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Student Details</h4>
+        <p style="font-size: 0.88rem; color: #94A3B8;">
+          <strong>Aafridi Ansari</strong><br>
+          Roll No: 24CS253<br>
+          Department of CSE<br>
+          KPRIET, Coimbatore
+        </p>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <div>© 2026 KPR Institute of Engineering and Technology. All rights reserved.</div>
+      <div>Designed for Web Technology Assignment 2</div>
+    </div>
+  </footer>
+
+  <!-- Global Application Scripts -->
+  <script src="js/app.js"></script>
+  <script>
+    let currentLoginRole = 'student';
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+
+    function switchLoginTab(role) {
+      currentLoginRole = role;
+      const sTab = document.getElementById('tabStudentLogin');
+      const aTab = document.getElementById('tabAdminLogin');
+      const idLabel = document.getElementById('loginIdLabel');
+      const idInput = document.getElementById('loginUserId');
+      const pwdInput = document.getElementById('loginPassword');
+
+      if (role === 'admin') {
+        aTab.style.background = '#7C3AED';
+        aTab.style.color = '#fff';
+        sTab.style.background = 'transparent';
+        sTab.style.color = '#64748B';
+        idLabel.textContent = 'Admin Username';
+        idInput.value = 'admin';
+        pwdInput.value = 'Admin@123';
+      } else {
+        sTab.style.background = '#7C3AED';
+        sTab.style.color = '#fff';
+        aTab.style.background = 'transparent';
+        aTab.style.color = '#64748B';
+        idLabel.textContent = 'Roll Number or Email';
+        idInput.value = '24CS253';
+        pwdInput.value = 'Student@123';
+      }
+    }
+
+    function handleQuickLogin(e) {
+      e.preventDefault();
+      const userId = document.getElementById('loginUserId').value.trim();
+      if (currentLoginRole === 'admin') {
+        localStorage.setItem('kpr_current_user', JSON.stringify({ role: 'admin', username: 'admin' }));
+        window.location.href = 'admin.html';
+      } else {
+        localStorage.setItem('kpr_current_user', JSON.stringify({ role: 'student', roll_number: userId || '24CS253' }));
+        window.location.href = 'portal.html';
+      }
+    }
+
+    function filterHomeCards(category, btn) {
+      document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const cards = document.querySelectorAll('.portal-card');
+      cards.forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function handleLiveSearch(query) {
+      const dropdown = document.getElementById('searchResultsDropdown');
+      if (!query || query.trim().length < 2) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const students = JSON.parse(localStorage.getItem('kpr_students') || '[]');
+      const q = query.toLowerCase();
+      const matches = students.filter(s => 
+        s.name.toLowerCase().includes(q) || 
+        s.roll_number.toLowerCase().includes(q) || 
+        s.department.toLowerCase().includes(q) ||
+        (s.course && s.course.toLowerCase().includes(q))
+      );
+
+      if (matches.length === 0) {
+        dropdown.innerHTML = `<div style="padding:1rem; color:#64748B; font-size:0.85rem;">No matching students found for "${query}"</div>`;
+      } else {
+        dropdown.innerHTML = matches.map(s => `
+          <div style="padding:0.75rem 1rem; border-bottom:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="viewStudentSearchResult('${s.roll_number}')">
+            <div>
+              <strong style="font-size:0.9rem; color:#0F172A;">${s.name}</strong>
+              <div style="font-size:0.75rem; color:#64748B;">Roll: ${s.roll_number} • Dept: ${s.department}</div>
+            </div>
+            <span class="badge badge-primary">View Profile</span>
+          </div>
+        `).join('');
+      }
+      dropdown.style.display = 'block';
+    }
+
+    function viewStudentSearchResult(roll) {
+      localStorage.setItem('kpr_current_user', JSON.stringify({ role: 'student', roll_number: roll }));
+      window.location.href = 'portal.html';
+    }
+
+    function executeGlobalSearch() {
+      const q = document.getElementById('globalSearchInput').value.trim();
+      if (q) {
+        window.location.href = `admin.html?search=${encodeURIComponent(q)}`;
+      }
+    }
+  </script>
+</body>
+</html>
