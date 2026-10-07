@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal — KPR StudentHub</title>
+  <meta name="description" content="View student profiles dynamically — KPR Institute of Engineering and Technology">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Portal-specific styles ── */
+    .portal-page { padding-top: 5rem; min-height: 100vh; }
+
+    /* Hero */
+    .portal-hero {
+      background: linear-gradient(145deg, #080A1A 0%, #130F3B 55%, #0B0D2A 100%);
+      border-bottom: 1px solid var(--border); padding: 3rem 0;
+      position: relative; overflow: hidden;
+    }
+    .portal-hero::before {
+      content:''; position:absolute; width:700px;height:700px;border-radius:50%;
+      background:radial-gradient(circle,rgba(124,58,237,0.15) 0%,transparent 70%);
+      top:-300px;right:-150px;pointer-events:none;
+    }
+    .portal-hero::after {
+      content:''; position:absolute; width:400px;height:400px;border-radius:50%;
+      background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);
+      bottom:-150px;left:-80px;pointer-events:none;
+    }
+    .hero-inner { position:relative;z-index:1; }
+    .hero-badge {
+      display:inline-flex;align-items:center;gap:0.4rem;
+      padding:0.3rem 0.8rem;border-radius:100px;margin-bottom:1rem;
+      background:rgba(124,58,237,0.12);border:1px solid var(--border);
+      font-size:0.75rem;font-weight:600;color:var(--accent-light);
+    }
+    .portal-hero h1 span { background:var(--grad-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .hero-stats { display:flex;gap:1.5rem;margin-top:1.5rem;flex-wrap:wrap; }
+    .hero-stat { display:flex;align-items:center;gap:0.5rem;font-size:0.875rem;color:var(--text-secondary); }
+    .hero-stat strong { color:var(--text-primary);font-size:1.1rem; }
+
+    /* Search + filter bar */
+    .portal-controls {
+      background:var(--bg-secondary);border-bottom:1px solid var(--border);
+      padding:1rem 0;position:sticky;top:4rem;z-index:50;
+      backdrop-filter:blur(20px);
+    }
+    .controls-inner {
+      display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;
+    }
+    .filter-chip {
+      display:flex;align-items:center;gap:0.4rem;
+      padding:0.45rem 0.85rem;border-radius:100px;
+      font-size:0.8rem;font-weight:500;cursor:pointer;transition:var(--trans);
+      border:1px solid var(--border);color:var(--text-secondary);background:transparent;
+      font-family:'Inter',sans-serif;
+    }
+    .filter-chip:hover { border-color:var(--border-hover);color:var(--text-primary); }
+    .filter-chip.active { background:rgba(124,58,237,0.15);border-color:var(--accent);color:var(--accent-light); }
+
+    /* Cards grid */
+    .cards-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:1.25rem;
+    }
+
+    /* Profile card */
+    .s-card {
+      background:var(--bg-card);backdrop-filter:blur(20px);
+      border:1px solid var(--border);border-radius:var(--r-xl);
+      overflow:hidden;transition:var(--trans);cursor:pointer;
+    }
+    .s-card:hover {
+      border-color:var(--border-hover);transform:translateY(-5px);
+      box-shadow:var(--shadow-card),var(--shadow-glow);
+    }
+    .s-card-banner {
+      height:76px;background:var(--grad-primary);position:relative;overflow:hidden;
+    }
+    .s-card-banner::after {
+      content:'';position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .s-card-avatar-wrap {
+      position:absolute;bottom:-34px;left:1.25rem;
+      width:68px;height:68px;border-radius:50%;
+      border:3px solid var(--bg-primary);overflow:hidden;
+      background:var(--bg-card);
+    }
+    .s-card-avatar-wrap img { width:100%;height:100%;object-fit:cover; }
+    .s-card-avatar-wrap .av-placeholder {
+      width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+      font-size:1.7rem;font-weight:700;color:var(--accent-light);
+      background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(99,102,241,0.15));
+    }
+    .s-card-body { padding:0.85rem 1.25rem 1.25rem;padding-top:2.4rem; }
+    .s-card-name { font-size:1.05rem;font-weight:700;margin-bottom:0.2rem; }
+    .s-card-roll { font-size:0.75rem;font-family:monospace;color:var(--accent-light);
+      background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);
+      display:inline-block;padding:0.15rem 0.45rem;border-radius:4px;margin-bottom:0.5rem; }
+    .s-card-details { font-size:0.8rem;color:var(--text-muted);display:flex;flex-direction:column;gap:0.2rem; }
+    .s-card-details span { display:flex;align-items:center;gap:0.35rem; }
+    .s-card-footer {
+      padding:0.75rem 1.25rem;border-top:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .s-card-docs {
+      display:flex;align-items:center;gap:0.35rem;
+      font-size:0.78rem;color:var(--text-muted);
+    }
+    .doc-dot-row { display:flex;gap:0.3rem; }
+    .doc-dot {
+      width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);
+      display:flex;align-items:center;justify-content:center;font-size:0.7rem;
+      background:rgba(124,58,237,0.08);
+    }
+    .more-docs { font-size:0.7rem;color:var(--text-muted); }
+
+    /* Empty / loading states */
+    .portal-empty { text-align:center;padding:5rem 2rem;color:var(--text-secondary); }
+    .portal-empty .big-icon { font-size:4rem;margin-bottom:1rem;opacity:0.4; }
+
+    /* ── Profile Detail Modal ── */
+    .profile-modal-header {
+      position:relative;height:120px;background:var(--grad-primary);
+      margin:-2rem -2rem 0;border-radius:var(--r-xl) var(--r-xl) 0 0;overflow:hidden;
+    }
+    .profile-modal-header::after {
+      content:'';position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .profile-modal-avatar {
+      position:absolute;bottom:-40px;left:2rem;
+      width:80px;height:80px;border-radius:50%;
+      border:4px solid var(--bg-modal);overflow:hidden;
+      background:var(--bg-card);z-index:1;
+    }
+    .profile-modal-avatar img { width:100%;height:100%;object-fit:cover; }
+    .profile-modal-avatar .av-lg {
+      width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+      font-size:2rem;font-weight:700;color:var(--accent-light);
+      background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(99,102,241,0.2));
+    }
+    .profile-modal-body { padding-top:3rem; }
+    .profile-name-row { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:0.5rem;flex-wrap:wrap; }
+    .profile-name-big { font-size:1.5rem;font-weight:800; }
+
+    /* Detail table */
+    .detail-table { width:100%;border-collapse:collapse;font-size:0.875rem;margin-bottom:1rem; }
+    .detail-table tr { border-bottom:1px solid rgba(255,255,255,0.04); }
+    .detail-table td { padding:0.6rem 0; }
+    .detail-table td:first-child { color:var(--text-muted);width:38%;font-size:0.8rem; }
+    .detail-table td:last-child { color:var(--text-primary);font-weight:500; }
+
+    /* Document gallery inside modal */
+    .doc-gallery { display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;margin-top:0.75rem; }
+    .doc-gallery-item {
+      border:1px solid var(--border);border-radius:var(--r-md);
+      overflow:hidden;transition:var(--trans);cursor:pointer;
+    }
+    .doc-gallery-item:hover { border-color:var(--border-hover);transform:scale(1.02); }
+    .doc-gallery-thumb {
+      height:100px;background:rgba(124,58,237,0.06);
+      display:flex;align-items:center;justify-content:center;overflow:hidden;
+    }
+    .doc-gallery-thumb img { width:100%;height:100%;object-fit:cover; }
+    .doc-gallery-thumb .gi-icon { font-size:2.5rem; }
+    .doc-gallery-info { padding:0.45rem 0.6rem;border-top:1px solid var(--border); }
+    .doc-gallery-name { font-size:0.73rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .doc-gallery-meta { font-size:0.68rem;color:var(--text-muted); }
+
+    /* Image lightbox */
+    .lightbox {
+      position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.92);
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;visibility:hidden;transition:var(--trans);
+    }
+    .lightbox.open { opacity:1;visibility:visible; }
+    .lightbox img { max-width:90vw;max-height:90vh;border-radius:var(--r-md);object-fit:contain; }
+    .lightbox-close {
+      position:absolute;top:1.5rem;right:1.5rem;width:40px;height:40px;
+      border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+      color:#fff;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    }
+
+    /* Session banner */
+    .session-banner {
+      background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);
+      border-radius:var(--r-md);padding:0.75rem 1.25rem;margin-bottom:1.5rem;
+      display:flex;align-items:center;gap:0.75rem;font-size:0.85rem;
+    }
+    .session-banner .sb-dot {
+      width:8px;height:8px;border-radius:50%;background:var(--success);
+      animation:pulse 2s infinite;flex-shrink:0;
+    }
+
+    @media(max-width:640px) {
+      .portal-controls { position:static; }
+      .cards-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<!-- ══ Navbar ══ -->
+<nav class="navbar">
+  <a class="nav-brand" href="index.html">
+    <div class="logo-icon">🎓</div>
+    <span>KPR StudentHub</span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="admin.html">🛡️ Admin</a>
+    <a href="portal.html" class="active">👁️ Portal</a>
+    <a href="register.html">➕ Register</a>
+  </div>
+  <div class="nav-actions">
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<div class="portal-page">
+  <!-- ══ Hero ══ -->
+  <section class="portal-hero">
+    <div class="container hero-inner">
+      <div class="hero-badge">👁️ Question 3 — Dynamic Student Portal</div>
+      <h1>Student <span>Profile</span> Directory</h1>
+      <p style="color:var(--text-secondary);max-width:550px;margin-top:0.5rem;line-height:1.7">
+        Browse registered students, view profiles, and access uploaded documents.
+        Dynamically rendered using looping &amp; conditional logic — session protected.
+      </p>
+      <div class="hero-stats" id="heroStats">
+        <div class="hero-stat"><strong id="hTotal">—</strong> Total Students</div>
+        <div class="hero-stat"><strong id="hActive">—</strong> Active</div>
+        <div class="hero-stat"><strong id="hDocs">—</strong> Documents</div>
+        <div class="hero-stat"><strong id="hCourses">—</strong> Courses</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ Sticky Controls ══ -->
+  <div class="portal-controls">
+    <div class="container">
+      <div class="controls-inner">
+        <div class="search-bar" style="min-width:200px;max-width:300px">
+          <span class="icon">🔍</span>
+          <input type="text" id="portalSearch" placeholder="Search students…" oninput="filterPortal()">
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap" id="courseFilters"></div>
+        <div style="display:flex;gap:0.4rem;margin-left:auto;flex-wrap:wrap">
+          <button class="filter-chip active" id="btnAll"      onclick="setYearFilter('all',this)">All Years</button>
+          <button class="filter-chip" id="btnI"    onclick="setYearFilter('I',this)">Year I</button>
+          <button class="filter-chip" id="btnII"   onclick="setYearFilter('II',this)">Year II</button>
+          <button class="filter-chip" id="btnIII"  onclick="setYearFilter('III',this)">Year III</button>
+          <button class="filter-chip" id="btnIV"   onclick="setYearFilter('IV',this)">Year IV</button>
+        </div>
+        <div style="display:flex;gap:0.4rem">
+          <button class="filter-chip" id="viewGrid" onclick="setView('grid')" title="Grid view">⊞</button>
+          <button class="filter-chip active" id="viewCards" onclick="setView('cards')" title="Card view">⊟</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Portal Content ══ -->
+  <div class="container section">
+    <!-- Session indicator -->
+    <div class="session-banner" id="sessionBanner">
+      <div class="sb-dot"></div>
+      <span id="sessionInfo">Fetching session…</span>
+    </div>
+
+    <!-- Result count -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+      <div id="resultCount" style="font-size:0.875rem;color:var(--text-secondary)"></div>
+      <div style="font-size:0.78rem;color:var(--text-muted)">
+        <!-- In real app: dynamically rendered via JSP/Servlet with JDBC -->
+        🗄️ Simulates: <code style="font-size:0.72rem;color:var(--accent-light)">ResultSet rs = stmt.executeQuery("SELECT * FROM students");</code>
+      </div>
+    </div>
+
+    <!-- Cards / Grid container -->
+    <div class="cards-grid" id="portalCards"></div>
+    <div class="portal-empty" id="portalEmpty" style="display:none">
+      <div class="big-icon">🔍</div>
+      <h3>No Students Found</h3>
+      <p>Try a different search term or filter.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Profile Detail Modal ══ -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="max-width:700px">
+    <div class="profile-modal-header" id="profileModalBanner">
+      <div class="profile-modal-avatar" id="profileModalAvatar"></div>
+    </div>
+    <div class="modal-header" style="position:absolute;top:0;right:0;padding:0.75rem;border:none;background:transparent">
+      <button class="modal-close" onclick="closeProfileModal()">✕</button>
+    </div>
+    <div class="profile-modal-body" id="profileModalBody"></div>
+  </div>
+</div>
+
+<!-- ══ Image Lightbox ══ -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="Document preview">
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// Student Portal — Dynamic Profile Display
+// Q3: Servlet / JDBC / JSP equivalent
+// Simulates: JDBC ResultSet iteration + JSP looping
+// ─────────────────────────────────────────────
+
+// ── Session guard ─────────────────────────────
+// Equivalent to: if(!isset($_SESSION['user'])) { header("Location: index.html"); exit; }
+Session.requireLogin();
+
+var allStudents  = [];
+var yearFilter   = 'all';
+var courseFilter = 'all';
+var viewMode     = 'cards';
+
+// ── DOMContentLoaded ──────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  // Simulates: SELECT * FROM students WHERE status='active'
+  // Done via Servlet doGet() with JDBC ResultSet iteration
+  allStudents = DB.getStudents();
+
+  // Update hero stats
+  var stats = DB.getStats();
+  document.getElementById('hTotal').textContent   = stats.total;
+  document.getElementById('hActive').textContent  = stats.active;
+  document.getElementById('hDocs').textContent    = stats.totalDocs;
+  document.getElementById('hCourses').textContent = stats.courses;
+
+  // Session banner — simulates: "Session user: " + session.getAttribute("user")
+  var user = Session.currentUser();
+  document.getElementById('sessionInfo').innerHTML =
+    '🔐 Session active — Logged in as <strong>' + user.name + '</strong> (' + user.role + ')';
+
+  // Build course filter chips
+  buildCourseFilters();
+
+  // Initial render — simulates JSP forEach loop over students
+  renderPortal();
+});
+
+// ── Build course chips ─────────────────────────
+function buildCourseFilters() {
+  var courses = [...new Set(allStudents.map(function(s){ return s.course; }))];
+  var container = document.getElementById('courseFilters');
+  var html = '<button class="filter-chip active" id="chipAll" onclick="setCourseFilter(\'all\',this)">All Courses</button>';
+  // Shorthand labels for space
+  var shortNames = {
+    'B.E. Computer Science': 'CS',
+    'B.Tech Information Technology': 'IT',
+    'B.E. Electronics & Communication': 'ECE',
+    'B.E. Electrical & Electronics': 'EEE',
+    'B.E. Mechanical Engineering': 'MECH',
+    'B.E. Civil Engineering': 'CIVIL',
+    'M.E. Computer Science': 'ME-CS',
+    'MBA': 'MBA', 'MCA': 'MCA'
+  };
+  courses.forEach(function(c) {
+    var label = shortNames[c] || c.split(' ').map(function(w){ return w[0]; }).join('');
+    html += '<button class="filter-chip" onclick="setCourseFilter(\'' + c.replace(/'/g,"\\'") + '\',this)">' + label + '</button>';
+  });
+  container.innerHTML = html;
+}
+
+// ── Filters ───────────────────────────────────
+function setYearFilter(val, btn) {
+  yearFilter = val;
+  document.querySelectorAll('#portalSearch').length; // no-op for syntax
+  document.querySelectorAll('[id^="btn"]').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderPortal();
+}
+function setCourseFilter(val, btn) {
+  courseFilter = val;
+  document.querySelectorAll('#courseFilters .filter-chip').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderPortal();
+}
+function filterPortal() { renderPortal(); }
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('viewGrid').classList.toggle('active', mode==='grid');
+  document.getElementById('viewCards').classList.toggle('active', mode==='cards');
+  var grid = document.getElementById('portalCards');
+  grid.style.gridTemplateColumns = mode === 'grid'
+    ? 'repeat(auto-fill,minmax(200px,1fr))'
+    : 'repeat(auto-fill,minmax(280px,1fr))';
+  renderPortal();
+}
+
+// ── Render Portal ─────────────────────────────
+// Simulates JSP <c:forEach> / Servlet response.getWriter().println()
+// with JDBC ResultSet: while(rs.next()) { out.println("<div>"+rs.getString("name")+"</div>"); }
+function renderPortal() {
+  var query   = document.getElementById('portalSearch').value.trim().toLowerCase();
+  var results = DB.searchStudents(query, {
+    year:   yearFilter   !== 'all' ? yearFilter   : undefined,
+    course: courseFilter !== 'all' ? courseFilter : undefined,
+    status: 'all'
+  });
+
+  var empty = document.getElementById('portalEmpty');
+  var grid  = document.getElementById('portalCards');
+
+  document.getElementById('resultCount').textContent =
+    'Showing ' + results.length + ' of ' + allStudents.length + ' student' + (allStudents.length!==1?'s':'');
+
+  if (!results.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // ── Looping logic (JSP equivalent forEach) ──
+  // In JSP: <c:forEach var="student" items="${studentList}">
+  //           <div>${student.name}</div>
+  //         </c:forEach>
+  grid.innerHTML = results.map(function(s) {
+    return buildStudentCard(s);
+  }).join('');
+}
+
+// ── Build individual card ─────────────────────
+// Simulates: <img src="${pageContext.request.contextPath}/studentImage?id=${s.id}">
+// where the Servlet streams the image from the DB-stored file path
+function buildStudentCard(s) {
+  // Conditional logic — simulates JSP <c:if> / ternary in Servlet
+  var hasPhoto  = s.profile_image && s.profile_image.length > 0;
+  var docs      = s.documents || [];
+  var statusCls = s.status === 'active' ? 'badge-success' : 'badge-error';
+  var statusTxt = s.status === 'active' ? '✅ Active'      : '❌ Inactive';
+
+  // Avatar — simulates <img src="ImageServlet?studentId=X" ...> in JSP
+  var avatarHTML = hasPhoto
+    ? '<img src="' + s.profile_image + '" alt="' + s.name + '">'
+    : '<div class="av-placeholder">' + UI.getInitials(s.name) + '</div>';
+
+  // Document dots — looping over documents array
+  // In Servlet: for(File f : studentFiles) { out.println("<span>"+f.getName()+"</span>"); }
+  var dotsHTML = '';
+  if (docs.length) {
+    dotsHTML = '<div class="doc-dot-row">' +
+      docs.slice(0,3).map(function(d){ return '<div class="doc-dot">' + FileUtils.getIcon(d.file_type) + '</div>'; }).join('') +
+      (docs.length > 3 ? '<div class="more-docs">+' + (docs.length-3) + '</div>' : '') +
+      '</div>';
+  }
+
+  return '<div class="s-card" onclick="openProfile(' + s.id + ')" role="button" tabindex="0" ' +
+    'aria-label="View profile of ' + s.name + '" onkeydown="if(event.key===\'Enter\')openProfile(' + s.id + ')">' +
+    '<div class="s-card-banner"><div class="s-card-avatar-wrap">' + avatarHTML + '</div></div>' +
+    '<div class="s-card-body">' +
+      '<div class="s-card-name">' + s.name + '</div>' +
+      '<span class="s-card-roll">' + s.roll_number + '</span>' +
+      '<div class="s-card-details">' +
+        '<span>🎓 ' + (s.course ? UI.truncate(s.course, 28) : '—') + '</span>' +
+        '<span>📅 Year ' + (s.year||'—') + ' — Section ' + (s.section||'—') + '</span>' +
+        '<span>📧 ' + (s.email||'—') + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="s-card-footer">' +
+      '<span class="badge ' + statusCls + '">' + statusTxt + '</span>' +
+      '<div class="s-card-docs">' + (dotsHTML || '<span style="font-size:0.75rem">No docs</span>') + '</div>' +
+    '</div>' +
+    '</div>';
+}
+
+// ── Open Profile Modal ─────────────────────────
+// Simulates: Servlet fetching student + files from MySQL via JDBC
+// then streaming data to JSP template
+function openProfile(id) {
+  // Simulates: PreparedStatement ps = conn.prepareStatement("SELECT * FROM students WHERE id=?");
+  var s = DB.getStudentById(id);
+  if (!s) { Toast.error('Student not found.'); return; }
+
+  var docs    = s.documents || [];
+  var hasPhoto= s.profile_image && s.profile_image.length > 0;
+
+  // Avatar
+  var avatarHTML = hasPhoto
+    ? '<img src="' + s.profile_image + '" alt="' + s.name + '">'
+    : '<div class="av-lg">' + UI.getInitials(s.name) + '</div>';
+  document.getElementById('profileModalAvatar').innerHTML = avatarHTML;
+
+  var statusBadge = s.status === 'active'
+    ? '<span class="badge badge-success">✅ Active</span>'
+    : '<span class="badge badge-error">❌ Inactive</span>';
+
+  // Document gallery — looping / conditional
+  // In JSP: <c:forEach var="doc" items="${docs}">
+  //   <img src="DocServlet?id=${doc.id}" ... /> (Servlet streams file from disk)
+  // </c:forEach>
+  var docGallery = '';
+  if (docs.length > 0) {
+    docGallery = '<div class="doc-gallery">' +
+      docs.map(function(d) {
+        var thumbHTML = FileUtils.isImage(d.file_type)
+          // In real: <img src="ImageServlet?path=${d.file_path}"> — Servlet reads & streams file
+          ? '<img src="' + d.file_path + '" alt="' + d.file_name + '" onclick="openLightbox(\'' + d.file_path.replace(/'/g,"\\'") + '\')" style="cursor:zoom-in">'
+          : '<span class="gi-icon">' + FileUtils.getIcon(d.file_type) + '</span>';
+        return '<div class="doc-gallery-item">' +
+          '<div class="doc-gallery-thumb">' + thumbHTML + '</div>' +
+          '<div class="doc-gallery-info">' +
+            '<div class="doc-gallery-name" title="' + d.file_name + '">' + d.file_name + '</div>' +
+            '<div class="doc-gallery-meta">' + FileUtils.formatSize(d.file_size) + ' • ' + UI.formatDate(d.upload_date) + '</div>' +
+          '</div></div>';
+      }).join('') +
+      '</div>';
+  } else {
+    // Conditional: if no documents (JSP: <c:if test="${empty docs}">)
+    docGallery = '<div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.875rem">' +
+      '<div style="font-size:2rem;margin-bottom:0.5rem">📂</div>No documents uploaded.</div>';
+  }
+
+  document.getElementById('profileModalBody').innerHTML =
+    '<div class="profile-name-row">' +
+      '<div>' +
+        '<div class="profile-name-big">' + s.name + '</div>' +
+        '<span class="s-card-roll">' + s.roll_number + '</span>' +
+      '</div>' +
+      statusBadge +
+    '</div>' +
+    '<div class="tabs">' +
+      '<button class="tab-btn active" onclick="pTab(this,\'pInfo\')">ℹ️ Info</button>' +
+      '<button class="tab-btn" onclick="pTab(this,\'pDocs\')">📁 Documents (' + docs.length + ')</button>' +
+    '</div>' +
+    '<div id="pInfo" class="tab-panel active">' +
+      '<table class="detail-table">' +
+        '<tr><td>Course</td><td>' + (s.course||'—') + '</td></tr>' +
+        '<tr><td>Year / Section</td><td>Year ' + (s.year||'—') + ' — Section ' + (s.section||'—') + '</td></tr>' +
+        '<tr><td>Email</td><td>' + (s.email||'—') + '</td></tr>' +
+        '<tr><td>Phone</td><td>' + (s.phone||'—') + '</td></tr>' +
+        '<tr><td>Gender</td><td>' + (s.gender||'—') + '</td></tr>' +
+        '<tr><td>Date of Birth</td><td>' + UI.formatDate(s.dob) + '</td></tr>' +
+        '<tr><td>Address</td><td>' + (s.address||'—') + '</td></tr>' +
+        '<tr><td>Registered On</td><td>' + UI.formatDate(s.created_at) + '</td></tr>' +
+      '</table>' +
+    '</div>' +
+    '<div id="pDocs" class="tab-panel">' +
+      '<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem">' +
+        '<!-- Servlet: for each file path, stream via response.getOutputStream() -->' +
+        'Click images to zoom. ' + docs.length + ' document(s) on record.' +
+      '</p>' +
+      docGallery +
+    '</div>';
+
+  // Show modal
+  var overlay = document.getElementById('profileModal');
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function pTab(btn, panelId) {
+  document.querySelectorAll('#profileModalBody .tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('#profileModalBody .tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  var panel = document.getElementById(panelId);
+  if (panel) panel.classList.add('active');
+}
+
+function closeProfileModal() {
+  document.getElementById('profileModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// Close on overlay click
+document.getElementById('profileModal').addEventListener('click', function(e) {
+  if (e.target === this) closeProfileModal();
+});
+
+// ── Lightbox ──────────────────────────────────
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  event.stopPropagation();
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeProfileModal(); closeLightbox(); }
+});
+</script>
+</body>
+</html>

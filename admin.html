@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — KPR StudentHub</title>
+  <meta name="description" content="Admin dashboard for managing student records, file uploads, and CRUD operations">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Admin layout ── */
+    body { overflow-x: hidden; }
+    .admin-page { padding-top: 4rem; display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { position:fixed;top:4rem;left:0;bottom:0;width:240px;
+      background:var(--bg-secondary);border-right:1px solid var(--border);
+      overflow-y:auto;z-index:90;display:flex;flex-direction:column;transition:var(--trans); }
+    .sidebar-top { padding:1.25rem 1rem 0.5rem; }
+    .sidebar-admin-info { display:flex;align-items:center;gap:0.75rem;
+      padding:0.85rem 0.75rem;border-radius:var(--r-md);margin-bottom:0.5rem;
+      background:rgba(124,58,237,0.1);border:1px solid var(--border); }
+    .admin-av { width:38px;height:38px;border-radius:50%;
+      background:var(--grad-primary);display:flex;align-items:center;
+      justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0; }
+    .admin-info-text .name { font-size:0.875rem;font-weight:600; }
+    .admin-info-text .role { font-size:0.72rem;color:var(--accent-light); }
+    .sidebar-nav { padding:0 0.75rem; flex:1; }
+    .sidebar-footer { padding:1rem; border-top:1px solid var(--border);margin-top:auto; }
+    .sidebar-version { font-size:0.72rem;color:var(--text-muted);text-align:center; }
+
+    /* Content */
+    .admin-content { margin-left:240px;flex:1;padding:2rem;min-height:calc(100vh - 4rem); }
+    @media(max-width:768px) { .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); } .admin-content { margin-left:0; } }
+
+    /* Page header */
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-size:1.6rem;margin-bottom:0.3rem; }
+    .page-header p  { color:var(--text-secondary);font-size:0.875rem; }
+
+    /* Toolbar */
+    .toolbar {
+      display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;
+    }
+    .filter-select {
+      padding:0.55rem 0.9rem;background:rgba(255,255,255,0.04);
+      border:1px solid var(--border);border-radius:var(--r-md);
+      color:var(--text-primary);font-size:0.875rem;font-family:'Inter',sans-serif;
+      outline:none;transition:var(--trans);cursor:pointer;
+    }
+    .filter-select:focus { border-color:var(--accent); }
+    .filter-select option { background:var(--bg-modal); }
+
+    /* Table enhancements */
+    .roll-badge {
+      display:inline-block;padding:0.2rem 0.55rem;border-radius:5px;
+      background:rgba(124,58,237,0.12);color:var(--accent-light);
+      font-size:0.78rem;font-weight:600;font-family:monospace;
+      border:1px solid rgba(124,58,237,0.2);
+    }
+    .student-name-cell { display:flex;align-items:center;gap:0.7rem; }
+    .mini-avatar {
+      width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;
+      background:var(--bg-card);border:1.5px solid var(--border);
+      display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;
+    }
+    .mini-avatar img { width:100%;height:100%;object-fit:cover; }
+    .action-group { display:flex;gap:0.3rem;align-items:center; }
+
+    /* View modal extras */
+    .student-profile-header {
+      display:flex;align-items:center;gap:1.25rem;
+      padding:1.25rem;border-radius:var(--r-lg);margin-bottom:1.5rem;
+      background:var(--grad-card);border:1px solid var(--border);
+    }
+    .profile-photo-lg {
+      width:80px;height:80px;border-radius:50%;overflow:hidden;flex-shrink:0;
+      border:3px solid var(--border);background:var(--bg-card);
+      display:flex;align-items:center;justify-content:center;font-size:2rem;
+    }
+    .profile-photo-lg img { width:100%;height:100%;object-fit:cover; }
+    .profile-meta-grid {
+      display:grid;grid-template-columns:1fr 1fr;gap:0.35rem 1.5rem;
+      font-size:0.82rem;
+    }
+    .meta-row { display:flex;flex-direction:column;gap:0.15rem; }
+    .meta-label { color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em; }
+    .meta-value { color:var(--text-primary);font-weight:500; }
+
+    /* Inline upload inside student view */
+    .upload-inline-area {
+      border:2px dashed var(--border);border-radius:var(--r-md);
+      padding:1.25rem;text-align:center;cursor:pointer;transition:var(--trans);
+      position:relative;
+    }
+    .upload-inline-area:hover,.upload-inline-area.drag-over{border-color:var(--accent);background:rgba(124,58,237,0.06);}
+    .upload-inline-area input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+    /* Docs grid inside modal */
+    .doc-grid-modal { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.65rem;margin-top:0.75rem; }
+    .doc-thumb-item {
+      border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;
+      transition:var(--trans);position:relative;
+    }
+    .doc-thumb-item:hover { border-color:var(--border-hover); }
+    .doc-thumb-img { height:90px;background:rgba(124,58,237,0.08);display:flex;
+      align-items:center;justify-content:center;overflow:hidden; }
+    .doc-thumb-img img { width:100%;height:100%;object-fit:cover; }
+    .doc-thumb-img .big-icon { font-size:2.2rem; }
+    .doc-thumb-info { padding:0.4rem 0.5rem;border-top:1px solid var(--border); }
+    .doc-thumb-name { font-size:0.72rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .doc-thumb-size { font-size:0.68rem;color:var(--text-muted); }
+    .doc-remove-btn {
+      position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:4px;
+      background:rgba(239,68,68,0.85);border:none;cursor:pointer;
+      color:#fff;font-size:0.7rem;display:flex;align-items:center;justify-content:center;
+      opacity:0;transition:var(--trans);
+    }
+    .doc-thumb-item:hover .doc-remove-btn { opacity:1; }
+
+    /* Pagination */
+    .pagination { display:flex;align-items:center;gap:0.35rem;margin-top:1rem;flex-wrap:wrap; }
+    .page-btn {
+      min-width:34px;height:34px;border-radius:var(--r-sm);border:1px solid var(--border);
+      background:rgba(255,255,255,0.04);color:var(--text-secondary);font-size:0.82rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      font-family:'Inter',sans-serif;transition:var(--trans);
+    }
+    .page-btn:hover { border-color:var(--border-hover);color:var(--text-primary); }
+    .page-btn.active { background:var(--grad-primary);border-color:var(--accent);color:#fff; }
+    .page-btn:disabled { opacity:0.4;cursor:not-allowed; }
+    .page-info { font-size:0.78rem;color:var(--text-muted);margin-left:0.5rem; }
+
+    /* Responsive table row actions */
+    @media(max-width:600px) {
+      .hide-mobile { display:none; }
+      .admin-content { padding:1rem; }
+    }
+  </style>
+</head>
+<body>
+<!-- ══ Navbar ══ -->
+<nav class="navbar">
+  <a class="nav-brand" href="admin.html">
+    <div class="logo-icon">🎓</div>
+    <span>KPR StudentHub</span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="admin.html" class="active">🛡️ Admin</a>
+    <a href="portal.html">👁️ Portal</a>
+    <a href="register.html">➕ Register</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-secondary btn-sm" onclick="document.querySelector('.sidebar').classList.toggle('open')" style="display:none" id="menuToggle">☰</button>
+    <div class="nav-user" id="navUser"></div>
+  </div>
+</nav>
+
+<div class="admin-page">
+  <!-- ══ Sidebar ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-admin-info">
+        <div class="admin-av" id="sidebarAv">A</div>
+        <div class="admin-info-text">
+          <div class="name" id="sidebarName">Admin</div>
+          <div class="role">Administrator</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Dashboard</div>
+      <button class="sidebar-link active" onclick="showView('dashboard',this)">
+        <span class="link-icon">📊</span> Overview
+      </button>
+      <div class="sidebar-section-title">Students</div>
+      <button class="sidebar-link" onclick="showView('students',this)">
+        <span class="link-icon">👥</span> All Students
+        <span class="badge badge-purple sidebar-badge" id="countBadge">0</span>
+      </button>
+      <button class="sidebar-link" onclick="openAddModal()">
+        <span class="link-icon">➕</span> Add Student
+      </button>
+      <div class="sidebar-section-title">Reports</div>
+      <button class="sidebar-link" onclick="showView('reports',this)">
+        <span class="link-icon">📈</span> Statistics
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-version">KPR StudentHub v1.0<br>U21CS501 Web Technology</div>
+    </div>
+  </aside>
+
+  <!-- ══ Main Content ══ -->
+  <main class="admin-content">
+
+    <!-- ─── Dashboard View ─── -->
+    <div id="view-dashboard">
+      <div class="page-header">
+        <h1>📊 Admin Dashboard</h1>
+        <p>Welcome back! Here's an overview of the student management system.</p>
+      </div>
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid"></div>
+      <!-- Quick actions -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem">
+        <div class="card" style="cursor:pointer" onclick="showView('students',null)">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <div class="stat-icon purple">👥</div>
+            <div>
+              <div style="font-weight:600">Manage Students</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary)">View, add, edit and delete student records</div>
+            </div>
+            <span style="margin-left:auto;color:var(--text-muted)">→</span>
+          </div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="openAddModal()">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <div class="stat-icon green">➕</div>
+            <div>
+              <div style="font-weight:600">Add New Student</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary)">Register a new student with documents</div>
+            </div>
+            <span style="margin-left:auto;color:var(--text-muted)">→</span>
+          </div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="window.location.href='portal.html'">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <div class="stat-icon blue">👁️</div>
+            <div>
+              <div style="font-weight:600">Student Portal</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary)">View public student profile portal</div>
+            </div>
+            <span style="margin-left:auto;color:var(--text-muted)">→</span>
+          </div>
+        </div>
+      </div>
+      <!-- Recent students table -->
+      <div class="card">
+        <div class="section-header">
+          <div><div class="section-title">Recent Students</div><div class="section-sub">Last 5 registered students</div></div>
+          <button class="btn btn-secondary btn-sm" onclick="showView('students',null)">View All →</button>
+        </div>
+        <div class="table-container" id="recentTable"></div>
+      </div>
+    </div>
+
+    <!-- ─── Students View ─── -->
+    <div id="view-students" style="display:none">
+      <div class="page-header">
+        <h1>👥 Student Records</h1>
+        <p>Manage all student records — CRUD operations with file upload support.</p>
+      </div>
+      <div class="toolbar">
+        <div class="search-bar" style="min-width:220px">
+          <span class="icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by name, roll, email…" oninput="handleSearch()">
+        </div>
+        <select class="filter-select" id="filterCourse" onchange="handleSearch()">
+          <option value="all">All Courses</option>
+          <option>B.E. Computer Science</option>
+          <option>B.Tech Information Technology</option>
+          <option>B.E. Electronics &amp; Communication</option>
+          <option>B.E. Electrical &amp; Electronics</option>
+          <option>B.E. Mechanical Engineering</option>
+          <option>B.E. Civil Engineering</option>
+          <option>M.E. Computer Science</option>
+          <option>MBA</option>
+          <option>MCA</option>
+        </select>
+        <select class="filter-select" id="filterYear" onchange="handleSearch()">
+          <option value="all">All Years</option>
+          <option value="I">I Year</option>
+          <option value="II">II Year</option>
+          <option value="III">III Year</option>
+          <option value="IV">IV Year</option>
+        </select>
+        <select class="filter-select" id="filterStatus" onchange="handleSearch()">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <button class="btn btn-primary" onclick="openAddModal()" style="margin-left:auto">➕ Add Student</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-container">
+          <table id="studentsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th class="hide-mobile">Roll No.</th>
+                <th class="hide-mobile">Course</th>
+                <th class="hide-mobile">Year / Sec</th>
+                <th>Status</th>
+                <th class="hide-mobile">Docs</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="display:none" class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <h3>No Students Found</h3>
+          <p>Try adjusting the search or filter, or <a href="#" onclick="openAddModal();return false" style="color:var(--accent-light)">add a new student</a>.</p>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem">
+        <div class="page-info" id="pageInfo"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+    <!-- ─── Reports View ─── -->
+    <div id="view-reports" style="display:none">
+      <div class="page-header">
+        <h1>📈 Statistics &amp; Reports</h1>
+        <p>Analytics and insights about the student database.</p>
+      </div>
+      <div id="reportsContent"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════
+     ADD / EDIT STUDENT MODAL
+════════════════════════════════════ -->
+<div class="modal-overlay" id="addEditModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">➕ Add New Student</h3>
+      <button class="modal-close" onclick="closeModal('addEditModal')">✕</button>
+    </div>
+    <form id="addEditForm" novalidate>
+      <input type="hidden" id="editId">
+      <!-- Profile photo -->
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+        <div id="modalPhotoRing" style="width:72px;height:72px;border-radius:50%;border:2px dashed var(--border);cursor:pointer;overflow:hidden;background:rgba(124,58,237,0.06);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;transition:var(--trans);position:relative;"
+             onclick="document.getElementById('modalPhotoInput').click()">
+          <img id="modalPhotoImg" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+          <span id="modalPhotoIcon">📷</span>
+          <input type="file" id="modalPhotoInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+        </div>
+        <div>
+          <div style="font-size:0.875rem;font-weight:500">Profile Photo</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">JPG, PNG, WEBP — max 2 MB</div>
+          <span class="field-error" id="modalPhotoErr"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mName">Full Name <span class="required">*</span></label>
+          <input type="text" id="mName" class="form-control" placeholder="Full name" maxlength="100">
+          <span class="field-error" id="mNameErr"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mRoll">Roll Number <span class="required">*</span></label>
+          <input type="text" id="mRoll" class="form-control" placeholder="e.g. 24CS001" maxlength="7" style="text-transform:uppercase">
+          <span class="field-error" id="mRollErr"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mEmail">Email <span class="required">*</span></label>
+          <input type="email" id="mEmail" class="form-control" placeholder="student@kpriet.ac.in">
+          <span class="field-error" id="mEmailErr"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mPhone">Phone</label>
+          <input type="tel" id="mPhone" class="form-control" placeholder="10-digit mobile" maxlength="10">
+          <span class="field-error" id="mPhoneErr"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mCourse">Course <span class="required">*</span></label>
+          <select id="mCourse" class="form-control">
+            <option value="">-- Select --</option>
+            <option>B.E. Computer Science</option>
+            <option>B.Tech Information Technology</option>
+            <option>B.E. Electronics &amp; Communication</option>
+            <option>B.E. Electrical &amp; Electronics</option>
+            <option>B.E. Mechanical Engineering</option>
+            <option>B.E. Civil Engineering</option>
+            <option>M.E. Computer Science</option>
+            <option>MBA</option><option>MCA</option>
+          </select>
+          <span class="field-error" id="mCourseErr"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mGender">Gender</label>
+          <select id="mGender" class="form-control">
+            <option value="">-- Select --</option>
+            <option>Male</option><option>Female</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mYear">Year <span class="required">*</span></label>
+          <select id="mYear" class="form-control">
+            <option value="">-- Year --</option>
+            <option value="I">I Year</option><option value="II">II Year</option>
+            <option value="III">III Year</option><option value="IV">IV Year</option>
+          </select>
+          <span class="field-error" id="mYearErr"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mSection">Section <span class="required">*</span></label>
+          <select id="mSection" class="form-control">
+            <option value="">-- Section --</option>
+            <option value="A">A</option><option value="B">B</option>
+            <option value="C">C</option><option value="D">D</option>
+          </select>
+          <span class="field-error" id="mSectionErr"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mDob">Date of Birth</label>
+          <input type="date" id="mDob" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mStatus">Status</label>
+          <select id="mStatus" class="form-control">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mAddress">Address</label>
+        <textarea id="mAddress" class="form-control" rows="2" placeholder="Residential address" style="resize:vertical"></textarea>
+      </div>
+    </form>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addEditModal')">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveStudent()">💾 Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     VIEW STUDENT + FILE UPLOAD MODAL
+════════════════════════════════════ -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h3 class="modal-title">👤 Student Profile</h3>
+      <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div id="viewContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+      <button class="btn btn-primary" id="viewEditBtn" onclick="editFromView()">✏️ Edit Student</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// Admin Panel — CRUD Operations
+// Q2: PHP-equivalent CRUD with file upload
+// Simulates: PHP PDO + MySQL + move_uploaded_file()
+// ─────────────────────────────────────────────
+
+// ── Session guard (simulates PHP session check) ──
+Session.requireAdmin();
+
+var currentPage   = 1;
+var pageSize      = 8;
+var filteredData  = [];
+var editingId     = null;
+var modalPhoto    = null;
+var viewingId     = null;
+
+// ── Init ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  var user = Session.currentUser();
+  if (user) {
+    document.getElementById('sidebarAv').textContent   = UI.getInitials(user.name);
+    document.getElementById('sidebarName').textContent = user.name;
+  }
+  refreshStats();
+  renderDashboard();
+  renderStudentTable();
+  // Show mobile menu toggle
+  if (window.innerWidth < 768) document.getElementById('menuToggle').style.display = 'flex';
+});
+
+// ── View switcher ─────────────────────────────
+function showView(name, btn) {
+  ['dashboard','students','reports'].forEach(function(v) {
+    document.getElementById('view-' + v).style.display = v === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.sidebar-link').forEach(function(l) { l.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (name === 'students') renderStudentTable();
+  if (name === 'reports')  renderReports();
+}
+
+// ── Stats refresh ─────────────────────────────
+function refreshStats() {
+  var s = DB.getStats();
+  document.getElementById('countBadge').textContent = s.total;
+  document.getElementById('statsGrid').innerHTML = [
+    { label:'Total Students', value:s.total,      icon:'👥', cls:'purple' },
+    { label:'Active',          value:s.active,     icon:'✅', cls:'green'  },
+    { label:'Documents',       value:s.totalDocs,  icon:'📁', cls:'blue'   },
+    { label:'Courses',         value:s.courses,    icon:'🎓', cls:'orange' }
+  ].map(function(st) {
+    return '<div class="stat-card">' +
+      '<div class="stat-icon ' + st.cls + '">' + st.icon + '</div>' +
+      '<div><div class="stat-value">' + st.value + '</div><div class="stat-label">' + st.label + '</div></div>' +
+      '</div>';
+  }).join('');
+}
+
+// ── Dashboard render ──────────────────────────
+function renderDashboard() {
+  var students = DB.getStudents().slice(-5).reverse();
+  document.getElementById('recentTable').innerHTML = buildTable(students, true);
+}
+
+// ── Student table ─────────────────────────────
+function renderStudentTable() {
+  var query  = (document.getElementById('searchInput')  || {}).value || '';
+  var course = (document.getElementById('filterCourse') || {}).value || 'all';
+  var year   = (document.getElementById('filterYear')   || {}).value || 'all';
+  var status = (document.getElementById('filterStatus') || {}).value || 'all';
+  filteredData = DB.searchStudents(query, { course:course, year:year, status:status });
+  renderPage(currentPage);
+}
+function handleSearch() { currentPage = 1; renderStudentTable(); }
+
+function renderPage(page) {
+  currentPage = page;
+  var start = (page - 1) * pageSize;
+  var slice = filteredData.slice(start, start + pageSize);
+  var body  = document.getElementById('studentsBody');
+  var empty = document.getElementById('emptyState');
+  if (!filteredData.length) {
+    body.innerHTML = ''; empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    body.innerHTML = slice.map(function(s, i) {
+      var photo = s.profile_image
+        ? '<img src="' + s.profile_image + '" alt="' + s.name + '">'
+        : '<span>' + UI.getInitials(s.name) + '</span>';
+      var statusBadge = s.status === 'active'
+        ? '<span class="badge badge-success">Active</span>'
+        : '<span class="badge badge-error">Inactive</span>';
+      return '<tr>' +
+        '<td class="td-muted">' + (start + i + 1) + '</td>' +
+        '<td><div class="student-name-cell"><div class="mini-avatar">' + photo + '</div><div><div style="font-weight:500">' + s.name + '</div><div class="td-muted">' + s.email + '</div></div></div></td>' +
+        '<td class="hide-mobile"><span class="roll-badge">' + s.roll_number + '</span></td>' +
+        '<td class="hide-mobile td-muted">' + UI.truncate(s.course, 25) + '</td>' +
+        '<td class="hide-mobile td-muted">' + (s.year||'—') + ' / ' + (s.section||'—') + '</td>' +
+        '<td>' + statusBadge + '</td>' +
+        '<td class="hide-mobile"><span class="badge badge-purple">' + (s.documents||[]).length + '</span></td>' +
+        '<td><div class="action-group">' +
+          '<button class="btn btn-sm btn-secondary btn-icon" onclick="viewStudent(' + s.id + ')" title="View">👁️</button>' +
+          '<button class="btn btn-sm btn-secondary btn-icon" onclick="editStudent(' + s.id + ')" title="Edit">✏️</button>' +
+          '<button class="btn btn-sm btn-danger btn-icon" onclick="deleteStudent(' + s.id + ')" title="Delete">🗑️</button>' +
+        '</div></td></tr>';
+    }).join('');
+  }
+  renderPagination();
+  document.getElementById('pageInfo').textContent = filteredData.length
+    ? 'Showing ' + (start+1) + '–' + Math.min(start+pageSize, filteredData.length) + ' of ' + filteredData.length + ' students'
+    : '';
+}
+
+function renderPagination() {
+  var total = Math.ceil(filteredData.length / pageSize);
+  var pg    = document.getElementById('pagination');
+  if (total <= 1) { pg.innerHTML = ''; return; }
+  var html = '<button class="page-btn" onclick="renderPage(' + (currentPage-1) + ')" ' + (currentPage===1?'disabled':'') + '>‹</button>';
+  for (var i = 1; i <= total; i++) {
+    html += '<button class="page-btn ' + (i===currentPage?'active':'') + '" onclick="renderPage(' + i + ')">' + i + '</button>';
+  }
+  html += '<button class="page-btn" onclick="renderPage(' + (currentPage+1) + ')" ' + (currentPage===total?'disabled':'') + '>›</button>';
+  pg.innerHTML = html;
+}
+
+function buildTable(students, mini) {
+  if (!students.length) return '<div class="empty-state" style="padding:2rem"><div class="empty-icon">📭</div><p>No students yet.</p></div>';
+  return '<table><thead><tr><th>Student</th><th>Roll No.</th>' +
+    (mini?'':'<th>Course</th>') + '<th>Status</th><th>Docs</th><th>Actions</th></tr></thead><tbody>' +
+    students.map(function(s) {
+      var photo = s.profile_image
+        ? '<img src="' + s.profile_image + '" alt="">'
+        : '<span>' + UI.getInitials(s.name) + '</span>';
+      var statusBadge = s.status==='active'
+        ? '<span class="badge badge-success">Active</span>'
+        : '<span class="badge badge-error">Inactive</span>';
+      return '<tr><td><div class="student-name-cell"><div class="mini-avatar">' + photo + '</div>' +
+        '<div><div style="font-weight:500">' + s.name + '</div><div class="td-muted">' + s.roll_number + '</div></div></div></td>' +
+        '<td><span class="roll-badge">' + s.roll_number + '</span></td>' +
+        (mini?'':'<td class="td-muted">' + UI.truncate(s.course,22) + '</td>') +
+        '<td>' + statusBadge + '</td>' +
+        '<td><span class="badge badge-purple">' + (s.documents||[]).length + '</span></td>' +
+        '<td><div class="action-group">' +
+          '<button class="btn btn-sm btn-secondary btn-icon" onclick="viewStudent(' + s.id + ')">👁️</button>' +
+          '<button class="btn btn-sm btn-secondary btn-icon" onclick="editStudent(' + s.id + ')">✏️</button>' +
+          '<button class="btn btn-sm btn-danger btn-icon" onclick="deleteStudent(' + s.id + ')">🗑️</button>' +
+        '</div></td></tr>';
+    }).join('') + '</tbody></table>';
+}
+
+// ── Add / Edit Modal ──────────────────────────
+function openAddModal() {
+  editingId  = null; modalPhoto = null;
+  document.getElementById('modalTitle').textContent = '➕ Add New Student';
+  document.getElementById('saveBtn').textContent    = '💾 Save Student';
+  document.getElementById('editId').value           = '';
+  clearModalForm();
+  openModal('addEditModal');
+}
+
+function editStudent(id) {
+  var s = DB.getStudentById(id);
+  if (!s) return;
+  editingId  = id; modalPhoto = s.profile_image || null;
+  document.getElementById('modalTitle').textContent = '✏️ Edit Student — ' + s.name;
+  document.getElementById('editId').value = id;
+  document.getElementById('mName').value    = s.name    || '';
+  document.getElementById('mRoll').value    = s.roll_number || '';
+  document.getElementById('mEmail').value   = s.email   || '';
+  document.getElementById('mPhone').value   = s.phone   || '';
+  document.getElementById('mCourse').value  = s.course  || '';
+  document.getElementById('mGender').value  = s.gender  || '';
+  document.getElementById('mYear').value    = s.year    || '';
+  document.getElementById('mSection').value = s.section || '';
+  document.getElementById('mDob').value     = s.dob     || '';
+  document.getElementById('mStatus').value  = s.status  || 'active';
+  document.getElementById('mAddress').value = s.address || '';
+  // Photo
+  var img  = document.getElementById('modalPhotoImg');
+  var icon = document.getElementById('modalPhotoIcon');
+  if (s.profile_image) {
+    img.src = s.profile_image; img.style.display='block'; icon.style.display='none';
+  } else {
+    img.style.display='none'; icon.style.display='';
+  }
+  openModal('addEditModal');
+}
+
+function clearModalForm() {
+  ['mName','mRoll','mEmail','mPhone','mAddress','mDob'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  ['mCourse','mGender','mYear','mSection'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('mStatus').value = 'active';
+  document.getElementById('modalPhotoImg').style.display = 'none';
+  document.getElementById('modalPhotoIcon').style.display = '';
+  UI.clearAllErrors(document.getElementById('addEditForm'));
+}
+
+// ── Modal photo ───────────────────────────────
+document.getElementById('modalPhotoInput').addEventListener('change', function(e) {
+  var file = e.target.files[0]; if (!file) return;
+  if (!Validate.fileType(file,['image/jpeg','image/png','image/webp'])) { Toast.error('Only JPG/PNG/WEBP'); return; }
+  if (!Validate.fileSize(file,2)) { Toast.error('Photo must be < 2MB'); return; }
+  FileUtils.readAsDataURL(file).then(function(url) {
+    modalPhoto = url;
+    var img  = document.getElementById('modalPhotoImg');
+    var icon = document.getElementById('modalPhotoIcon');
+    img.src = url; img.style.display='block'; icon.style.display='none';
+  });
+});
+
+// ── Save (INSERT / UPDATE) ────────────────────
+function saveStudent() {
+  var name    = document.getElementById('mName').value.trim();
+  var roll    = document.getElementById('mRoll').value.trim().toUpperCase();
+  var email   = document.getElementById('mEmail').value.trim();
+  var phone   = document.getElementById('mPhone').value.trim();
+  var course  = document.getElementById('mCourse').value;
+  var year    = document.getElementById('mYear').value;
+  var section = document.getElementById('mSection').value;
+  var ok      = true;
+
+  if (!Validate.required(name)||name.length<3) { UI.setError('mName','Name required (min 3 chars)'); ok=false; } else UI.clearError('mName');
+  if (!Validate.rollNumber(roll)) { UI.setError('mRoll','Format: 24CS001'); ok=false; }
+  else {
+    var dup = DB.getStudentByRoll(roll);
+    if (dup && dup.id !== editingId) { UI.setError('mRoll','Roll number already exists'); ok=false; }
+    else UI.clearError('mRoll');
+  }
+  if (!Validate.email(email)) { UI.setError('mEmail','Invalid email'); ok=false; }
+  else {
+    var dupE = DB.getStudentByEmail(email);
+    if (dupE && dupE.id !== editingId) { UI.setError('mEmail','Email already registered'); ok=false; }
+    else UI.clearError('mEmail');
+  }
+  if (phone && !Validate.phone(phone)) { UI.setError('mPhone','Enter valid 10-digit number'); ok=false; } else UI.clearError('mPhone');
+  if (!Validate.required(course))  { UI.setError('mCourse','Select a course'); ok=false; }  else UI.clearError('mCourse');
+  if (!Validate.required(year))    { UI.setError('mYear','Select year'); ok=false; }         else UI.clearError('mYear');
+  if (!Validate.required(section)) { UI.setError('mSection','Select section'); ok=false; }   else UI.clearError('mSection');
+
+  if (!ok) { Toast.error('Fix the highlighted errors.'); return; }
+
+  var data = {
+    name: name, roll_number: roll, email: email, phone: phone,
+    course: course, year: year, section: section,
+    gender:  document.getElementById('mGender').value,
+    dob:     document.getElementById('mDob').value,
+    status:  document.getElementById('mStatus').value,
+    address: document.getElementById('mAddress').value.trim(),
+    profile_image: modalPhoto || (editingId ? (DB.getStudentById(editingId)||{}).profile_image||'' : '')
+  };
+
+  var btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  setTimeout(function() {
+    if (editingId) {
+      DB.updateStudent(editingId, data);
+      Toast.success('✅ Student record updated successfully!');
+    } else {
+      DB.addStudent(data);
+      Toast.success('🎉 New student added successfully!');
+    }
+    btn.disabled = false; btn.textContent = '💾 Save Student';
+    closeModal('addEditModal');
+    refreshStats(); renderStudentTable(); renderDashboard();
+  }, 700);
+}
+
+// ── Delete ────────────────────────────────────
+function deleteStudent(id) {
+  var s = DB.getStudentById(id); if (!s) return;
+  UI.confirm(
+    'Delete Student',
+    'Are you sure you want to delete <strong>' + s.name + '</strong> (' + s.roll_number + ')?<br><br>This action cannot be undone and all associated documents will be removed.',
+    function() {
+      DB.deleteStudent(id);
+      Toast.success('🗑️ Student deleted successfully.');
+      refreshStats(); renderStudentTable(); renderDashboard();
+    }, 'danger'
+  );
+}
+
+// ── View Student + File Management ────────────
+function viewStudent(id) {
+  var s = DB.getStudentById(id); if (!s) return;
+  viewingId = id;
+  var docs  = s.documents || [];
+  var photo = s.profile_image
+    ? '<img src="' + s.profile_image + '" alt="' + s.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    : '<span>' + UI.getInitials(s.name) + '</span>';
+  var statusBadge = s.status === 'active'
+    ? '<span class="badge badge-success">✅ Active</span>'
+    : '<span class="badge badge-error">❌ Inactive</span>';
+
+  var docHTML = '';
+  if (docs.length) {
+    docHTML = '<div class="doc-grid-modal">' + docs.map(function(d) {
+      var thumb = FileUtils.isImage(d.file_type)
+        ? '<img src="' + d.file_path + '" alt="' + d.file_name + '">'
+        : '<span class="big-icon">' + FileUtils.getIcon(d.file_type) + '</span>';
+      return '<div class="doc-thumb-item">' +
+        '<div class="doc-thumb-img">' + thumb + '</div>' +
+        '<div class="doc-thumb-info"><div class="doc-thumb-name" title="' + d.file_name + '">' + d.file_name + '</div>' +
+        '<div class="doc-thumb-size">' + FileUtils.formatSize(d.file_size) + '</div></div>' +
+        '<button class="doc-remove-btn" onclick="removeStudentDoc(' + s.id + ',' + d.id + ')" title="Remove">✕</button>' +
+        '</div>';
+    }).join('') + '</div>';
+  } else {
+    docHTML = '<div style="text-align:center;padding:1.5rem 0;color:var(--text-muted);font-size:0.875rem">No documents uploaded yet.</div>';
+  }
+
+  document.getElementById('viewContent').innerHTML =
+    '<div class="student-profile-header">' +
+      '<div class="profile-photo-lg">' + photo + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem">' +
+          '<h3 style="margin:0">' + s.name + '</h3>' + statusBadge +
+        '</div>' +
+        '<div class="profile-meta-grid">' +
+          '<div class="meta-row"><div class="meta-label">Roll Number</div><div class="meta-value">' + s.roll_number + '</div></div>' +
+          '<div class="meta-row"><div class="meta-label">Course</div><div class="meta-value">' + (s.course||'—') + '</div></div>' +
+          '<div class="meta-row"><div class="meta-label">Year / Section</div><div class="meta-value">' + (s.year||'—') + ' / ' + (s.section||'—') + '</div></div>' +
+          '<div class="meta-row"><div class="meta-label">Email</div><div class="meta-value">' + (s.email||'—') + '</div></div>' +
+          '<div class="meta-row"><div class="meta-label">Phone</div><div class="meta-value">' + (s.phone||'—') + '</div></div>' +
+          '<div class="meta-row"><div class="meta-label">Registered</div><div class="meta-value">' + UI.formatDate(s.created_at) + '</div></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="tabs">' +
+      '<button class="tab-btn active" onclick="switchViewTab(this,\'tabDocs\')">📁 Documents (' + docs.length + ')</button>' +
+      '<button class="tab-btn" onclick="switchViewTab(this,\'tabUpload\')">⬆️ Upload File</button>' +
+      '<button class="tab-btn" onclick="switchViewTab(this,\'tabInfo\')">ℹ️ Full Details</button>' +
+    '</div>' +
+    '<div id="tabDocs" class="tab-panel active">' + docHTML + '</div>' +
+    '<div id="tabUpload" class="tab-panel">' +
+      '<div class="form-group"><label class="form-label">Document Type</label>' +
+        '<select id="viewDocType" class="form-control">' +
+          '<option value="id_proof">ID Proof</option>' +
+          '<option value="certificate">Certificate</option>' +
+          '<option value="marksheet">Mark Sheet</option>' +
+          '<option value="other">Other</option>' +
+        '</select></div>' +
+      '<div class="upload-inline-area" id="viewUploadArea">' +
+        '<input type="file" id="viewFileInput" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>' +
+        '<div style="font-size:2rem;margin-bottom:0.5rem">📁</div>' +
+        '<div style="font-size:0.875rem;color:var(--text-secondary)">Drag &amp; drop or <span style="color:var(--accent-light);font-weight:600">browse</span></div>' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">JPG, PNG, PDF — Max 5 MB each</div>' +
+      '</div>' +
+      '<div id="viewUploadList" style="margin-top:0.75rem"></div>' +
+    '</div>' +
+    '<div id="tabInfo" class="tab-panel">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.875rem">' +
+        mkInfo('Gender', s.gender) + mkInfo('DOB', UI.formatDate(s.dob)) +
+        mkInfo('Address', s.address, true) + mkInfo('HSC %', s.hsc_percent||'—') +
+        mkInfo('Adm. Year', s.adm_year||'—') + mkInfo('Last Updated', UI.formatDate(s.updated_at)||'—') +
+      '</div>' +
+    '</div>';
+
+  // File upload listener inside modal
+  document.getElementById('viewFileInput').addEventListener('change', function(e) {
+    Array.from(e.target.files).forEach(function(file) {
+      if (!Validate.fileType(file)) { Toast.error('❌ Unsupported: ' + file.name); return; }
+      if (!Validate.fileSize(file,5)) { Toast.error('❌ Too large: ' + file.name); return; }
+      var stu = DB.getStudentById(viewingId);
+      if (Validate.fileNameExists(file.name, stu.documents||[])) {
+        Toast.warning('⚠️ File "' + file.name + '" already exists — overwriting prevented.'); return;
+      }
+      FileUtils.readAsDataURL(file).then(function(url) {
+        DB.addDocument(viewingId, {
+          file_name: file.name, file_type: file.type,
+          file_size: file.size, data_url: url,
+          doc_type: document.getElementById('viewDocType').value
+        });
+        Toast.success('📁 ' + file.name + ' uploaded successfully!');
+        refreshStats(); renderStudentTable();
+        // Refresh view
+        closeModal('viewModal');
+        setTimeout(function() { viewStudent(viewingId); openModal('viewModal'); }, 100);
+      });
+    });
+    this.value = '';
+  });
+
+  // Drag-drop in view modal
+  var area = document.getElementById('viewUploadArea');
+  area.addEventListener('dragover',  function(e){e.preventDefault();this.classList.add('drag-over');});
+  area.addEventListener('dragleave', function(){this.classList.remove('drag-over');});
+  area.addEventListener('drop', function(e){
+    e.preventDefault();this.classList.remove('drag-over');
+    if(e.dataTransfer.files.length) { document.getElementById('viewFileInput').files=e.dataTransfer.files; document.getElementById('viewFileInput').dispatchEvent(new Event('change')); }
+  });
+
+  openModal('viewModal');
+}
+
+function mkInfo(label, val, full) {
+  return '<div class="meta-row"' + (full?'style="grid-column:span 2"':'') + '>' +
+    '<div class="meta-label">' + label + '</div><div class="meta-value">' + (val||'—') + '</div></div>';
+}
+
+function switchViewTab(btn, panelId) {
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+function removeStudentDoc(studentId, docId) {
+  UI.confirm('Remove Document','Remove this document permanently?', function() {
+    DB.removeDocument(studentId, docId);
+    Toast.success('Document removed.');
+    refreshStats(); renderStudentTable();
+    closeModal('viewModal');
+    setTimeout(function(){ viewStudent(studentId); openModal('viewModal'); }, 100);
+  });
+}
+
+function editFromView() {
+  closeModal('viewModal');
+  setTimeout(function() { editStudent(viewingId); }, 300);
+}
+
+// ── Reports ───────────────────────────────────
+function renderReports() {
+  var students = DB.getStudents();
+  var courseMap = {}; var yearMap = {};
+  students.forEach(function(s) {
+    courseMap[s.course] = (courseMap[s.course]||0) + 1;
+    yearMap[s.year]     = (yearMap[s.year]||0) + 1;
+  });
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">';
+  // Course breakdown
+  html += '<div class="card"><h3 style="margin-bottom:1rem">Students by Course</h3>';
+  Object.keys(courseMap).forEach(function(c) {
+    var pct = Math.round(courseMap[c] / students.length * 100);
+    html += '<div style="margin-bottom:0.75rem"><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem"><span>' + UI.truncate(c,30) + '</span><strong>' + courseMap[c] + '</strong></div>' +
+      '<div class="progress"><div class="progress-bar" style="width:' + pct + '%"></div></div></div>';
+  });
+  html += '</div>';
+  // Year breakdown
+  html += '<div class="card"><h3 style="margin-bottom:1rem">Students by Year</h3>';
+  ['I','II','III','IV'].forEach(function(y) {
+    var cnt = yearMap[y] || 0;
+    var pct = students.length ? Math.round(cnt / students.length * 100) : 0;
+    html += '<div style="margin-bottom:0.75rem"><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem"><span>Year ' + y + '</span><strong>' + cnt + '</strong></div>' +
+      '<div class="progress"><div class="progress-bar" style="width:' + pct + '%"></div></div></div>';
+  });
+  html += '</div></div>';
+  document.getElementById('reportsContent').innerHTML = html;
+}
+
+// ── Modal helpers ─────────────────────────────
+function openModal(id) {
+  var m = document.getElementById(id);
+  m.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  var m = document.getElementById(id);
+  m.classList.remove('show');
+  document.body.style.overflow = '';
+}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(function(o) {
+  o.addEventListener('click', function(e) { if(e.target===o) closeModal(o.id); });
+});
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.show').forEach(function(m){ closeModal(m.id); });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration — KPR StudentHub</title>
+  <meta name="description" content="Register as a student at KPR Institute of Engineering and Technology">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Registration page styles ── */
+    .reg-page { padding-top: 5rem; min-height: 100vh; }
+
+    /* Hero banner */
+    .reg-hero {
+      background: linear-gradient(135deg,#0B0D2A 0%,#130F3B 50%,#0B0D2A 100%);
+      border-bottom:1px solid var(--border); padding:2.5rem 0;
+      position:relative; overflow:hidden;
+    }
+    .reg-hero::before {
+      content:''; position:absolute; width:600px;height:600px;border-radius:50%;
+      background:radial-gradient(circle,rgba(124,58,237,0.18) 0%,transparent 70%);
+      top:-300px;right:-100px;pointer-events:none;
+    }
+    .reg-hero-content { max-width:800px; }
+    .reg-step-badge {
+      display:inline-flex;align-items:center;gap:0.4rem;
+      padding:0.3rem 0.75rem;border-radius:100px;margin-bottom:1rem;
+      background:rgba(124,58,237,0.12);border:1px solid var(--border);
+      font-size:0.75rem;font-weight:600;color:var(--accent-light);
+    }
+    .reg-hero h1 { margin-bottom:0.5rem; }
+    .reg-hero h1 span { background:var(--grad-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .reg-hero p { color:var(--text-secondary); }
+
+    /* Progress steps */
+    .steps-bar {
+      display:flex; align-items:center; gap:0; margin-bottom:2rem;
+    }
+    .step {
+      display:flex; align-items:center; gap:0.6rem;
+      flex-shrink:0; transition:var(--trans);
+    }
+    .step-num {
+      width:34px; height:34px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.8rem; font-weight:700; border:2px solid var(--border);
+      color:var(--text-muted); background:transparent; transition:var(--trans);
+    }
+    .step.active   .step-num { background:var(--grad-primary);border-color:var(--accent);color:#fff;box-shadow:var(--shadow-btn); }
+    .step.done     .step-num { background:var(--success-bg);border-color:var(--success);color:var(--success); }
+    .step-label { font-size:0.82rem; font-weight:500; color:var(--text-muted); transition:var(--trans); }
+    .step.active .step-label { color:var(--text-primary); }
+    .step.done   .step-label { color:var(--success); }
+    .step-line { flex:1; height:2px; background:var(--border); margin:0 0.5rem; border-radius:1px; min-width:30px; }
+    .step-line.done { background:var(--success); }
+
+    /* Form layout */
+    .reg-layout { display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start; }
+    @media(max-width:900px) { .reg-layout { grid-template-columns:1fr; } .reg-sidebar { order:-1; } }
+
+    /* Form card */
+    .reg-form-card { background:var(--bg-card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden; }
+    .form-section {
+      padding:1.5rem 1.75rem; display:none;
+    }
+    .form-section.active { display:block; }
+    .form-section-title {
+      display:flex;align-items:center;gap:0.6rem;
+      font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;
+      padding-bottom:0.75rem;border-bottom:1px solid var(--border);
+    }
+    .section-icon {
+      width:34px;height:34px;border-radius:var(--r-sm);
+      background:rgba(124,58,237,0.15);display:flex;
+      align-items:center;justify-content:center;font-size:1rem;
+    }
+    .form-nav {
+      display:flex;justify-content:space-between;align-items:center;
+      padding:1.25rem 1.75rem;border-top:1px solid var(--border);
+      background:rgba(255,255,255,0.02);
+    }
+
+    /* Sidebar card */
+    .reg-sidebar .side-card {
+      background:var(--bg-card);backdrop-filter:blur(20px);border:1px solid var(--border);
+      border-radius:var(--r-xl);padding:1.5rem;margin-bottom:1rem;
+    }
+    .side-card h4 { font-size:0.9rem;margin-bottom:1rem;color:var(--text-primary); }
+    .rule-item {
+      display:flex;align-items:flex-start;gap:0.5rem;
+      font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.6rem;
+    }
+    .rule-icon { flex-shrink:0;margin-top:1px; }
+
+    /* Profile photo area */
+    .photo-section { text-align:center;margin-bottom:1.5rem; }
+    .photo-ring {
+      width:110px; height:110px; border-radius:50%;
+      border:3px dashed var(--border); margin:0 auto 0.75rem;
+      position:relative; cursor:pointer; transition:var(--trans);
+      overflow:hidden; background:rgba(124,58,237,0.06);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .photo-ring:hover { border-color:var(--accent); background:rgba(124,58,237,0.12); }
+    .photo-ring img { width:100%;height:100%;object-fit:cover;display:none;border-radius:50%; }
+    .photo-ring .ph-icon { font-size:2.8rem;color:var(--text-muted); }
+    .photo-ring input { position:absolute;inset:0;opacity:0;cursor:pointer; }
+    .photo-hint { font-size:0.78rem;color:var(--text-muted); }
+
+    /* Multi-file list */
+    .doc-list { display:flex;flex-direction:column;gap:0.5rem;margin-top:0.75rem; }
+
+    /* Success screen */
+    .success-screen { text-align:center; padding:3rem 1.75rem; display:none; }
+    .success-screen.show { display:block; }
+
+    /* Requirement checklist */
+    .pwd-reqs { margin-top:0.5rem; display:grid;grid-template-columns:1fr 1fr;gap:0.25rem; }
+    .pwd-req {
+      font-size:0.75rem; color:var(--text-muted);
+      display:flex; align-items:center; gap:0.3rem;
+      transition:var(--trans);
+    }
+    .pwd-req.met { color:var(--success); }
+    .pwd-req .dot { width:6px;height:6px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:var(--trans); }
+    .pwd-req.met .dot { background:var(--success); }
+  </style>
+</head>
+<body>
+<!-- ══ Navbar ══ -->
+<nav class="navbar">
+  <a class="nav-brand" href="index.html">
+    <div class="logo-icon">🎓</div>
+    <span>KPR StudentHub</span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Home</a>
+    <a href="register.html" class="active">Register</a>
+    <a href="portal.html">Portal</a>
+  </div>
+  <div class="nav-actions">
+    <a href="index.html" class="btn btn-secondary btn-sm">← Back to Login</a>
+  </div>
+</nav>
+
+<div class="reg-page">
+  <!-- ══ Hero ══ -->
+  <div class="reg-hero">
+    <div class="container">
+      <div class="reg-hero-content">
+        <div class="reg-step-badge">📋 Question 1 — Student Registration Form</div>
+        <h1>Student <span>Admission</span> Registration</h1>
+        <p>Complete the form below to register at KPR Institute of Engineering and Technology. All fields marked with <span style="color:var(--error)">*</span> are required.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <!-- Progress Steps -->
+    <div class="steps-bar" id="stepsBar">
+      <div class="step active" id="step1">
+        <div class="step-num" id="stepNum1">1</div>
+        <div class="step-label">Personal Info</div>
+      </div>
+      <div class="step-line" id="line12"></div>
+      <div class="step" id="step2">
+        <div class="step-num" id="stepNum2">2</div>
+        <div class="step-label">Academic Details</div>
+      </div>
+      <div class="step-line" id="line23"></div>
+      <div class="step" id="step3">
+        <div class="step-num" id="stepNum3">3</div>
+        <div class="step-label">Account & Files</div>
+      </div>
+    </div>
+
+    <div class="reg-layout">
+      <!-- ── Form Card ── -->
+      <div class="reg-form-card" id="regFormCard">
+        <form id="regForm" novalidate>
+
+          <!-- Section 1: Personal Info -->
+          <div class="form-section active" id="section1">
+            <div class="form-section-title">
+              <div class="section-icon">👤</div> Personal Information
+            </div>
+            <!-- Profile Photo -->
+            <div class="photo-section">
+              <div class="photo-ring" id="photoRing" onclick="document.getElementById('photoInput').click()">
+                <img id="photoPreview" alt="Profile preview">
+                <span class="ph-icon" id="photoIcon">📷</span>
+                <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+              </div>
+              <p class="photo-hint">Click to upload profile photo<br><span style="font-size:0.72rem">JPG, PNG, WEBP — max 2 MB</span></p>
+              <span class="field-error" id="photoErr" style="justify-content:center"></span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="fullName">Full Name <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">👤</span>
+                  <input type="text" id="fullName" class="form-control" placeholder="e.g. Arjun Sharma" maxlength="100">
+                </div>
+                <span class="field-error" id="fullNameErr"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="dob">Date of Birth <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📅</span>
+                  <input type="date" id="dob" class="form-control">
+                </div>
+                <span class="field-error" id="dobErr"></span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="gender">Gender <span class="required">*</span></label>
+                <select id="gender" class="form-control">
+                  <option value="">-- Select Gender --</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span class="field-error" id="genderErr"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="phone">Phone Number <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📱</span>
+                  <input type="tel" id="phone" class="form-control" placeholder="e.g. 9876543210" maxlength="10">
+                </div>
+                <span class="field-error" id="phoneErr"></span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">📧</span>
+                <input type="email" id="email" class="form-control" placeholder="e.g. name@kpriet.ac.in">
+              </div>
+              <span class="field-error" id="emailErr"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="address">Residential Address <span class="required">*</span></label>
+              <textarea id="address" class="form-control" rows="3" placeholder="Enter your full residential address" style="resize:vertical"></textarea>
+              <span class="field-error" id="addressErr"></span>
+            </div>
+          </div>
+
+          <!-- Section 2: Academic -->
+          <div class="form-section" id="section2">
+            <div class="form-section-title">
+              <div class="section-icon">🎓</div> Academic Information
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="rollNumber">Roll Number <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">🏷️</span>
+                  <input type="text" id="rollNumber" class="form-control" placeholder="e.g. 24CS001" maxlength="7" style="text-transform:uppercase">
+                </div>
+                <span class="field-error" id="rollNumberErr"></span>
+                <p class="field-hint">Format: 2 digits + 2 letters + 3 digits (e.g., 24CS001)</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="course">Course / Department <span class="required">*</span></label>
+                <select id="course" class="form-control">
+                  <option value="">-- Select Course --</option>
+                  <option>B.E. Computer Science</option>
+                  <option>B.Tech Information Technology</option>
+                  <option>B.E. Electronics &amp; Communication</option>
+                  <option>B.E. Electrical &amp; Electronics</option>
+                  <option>B.E. Mechanical Engineering</option>
+                  <option>B.E. Civil Engineering</option>
+                  <option>M.E. Computer Science</option>
+                  <option>MBA</option>
+                  <option>MCA</option>
+                </select>
+                <span class="field-error" id="courseErr"></span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="year">Year <span class="required">*</span></label>
+                <select id="year" class="form-control">
+                  <option value="">-- Select Year --</option>
+                  <option value="I">I Year</option>
+                  <option value="II">II Year</option>
+                  <option value="III">III Year</option>
+                  <option value="IV">IV Year</option>
+                </select>
+                <span class="field-error" id="yearErr"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="section">Section <span class="required">*</span></label>
+                <select id="section" class="form-control">
+                  <option value="">-- Select Section --</option>
+                  <option value="A">Section A</option>
+                  <option value="B">Section B</option>
+                  <option value="C">Section C</option>
+                  <option value="D">Section D</option>
+                </select>
+                <span class="field-error" id="sectionErr"></span>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="hscPercent">HSC Percentage</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📊</span>
+                  <input type="number" id="hscPercent" class="form-control" placeholder="e.g. 92.5" min="0" max="100" step="0.1">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="admYear">Admission Year</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📅</span>
+                  <input type="number" id="admYear" class="form-control" placeholder="e.g. 2024" min="2000" max="2030">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Account & Files -->
+          <div class="form-section" id="section3">
+            <div class="form-section-title">
+              <div class="section-icon">🔐</div> Account &amp; Document Upload
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regUsername">Username <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">👤</span>
+                <input type="text" id="regUsername" class="form-control" placeholder="Choose a username" maxlength="30">
+              </div>
+              <span class="field-error" id="regUsernameErr"></span>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="regPassword">Password <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" id="regPassword" class="form-control has-right-icon" placeholder="Create password" oninput="checkPwdStrength(this.value)">
+                  <span class="input-icon-right" onclick="togglePwd('regPassword',this)">👁️</span>
+                </div>
+                <span class="field-error" id="regPasswordErr"></span>
+                <!-- Strength Bar -->
+                <div class="password-strength" id="pwdStrength" style="display:none">
+                  <div class="strength-bar"><div class="strength-fill" id="pwdFill"></div></div>
+                  <div class="strength-label" id="pwdLabel"></div>
+                </div>
+                <!-- Requirements checklist -->
+                <div class="pwd-reqs">
+                  <div class="pwd-req" id="req-len"><div class="dot"></div>8+ characters</div>
+                  <div class="pwd-req" id="req-upper"><div class="dot"></div>Uppercase letter</div>
+                  <div class="pwd-req" id="req-lower"><div class="dot"></div>Lowercase letter</div>
+                  <div class="pwd-req" id="req-num"><div class="dot"></div>Number</div>
+                  <div class="pwd-req" id="req-special"><div class="dot"></div>Special character</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="confirmPassword">Confirm Password <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" id="confirmPassword" class="form-control has-right-icon" placeholder="Repeat password" oninput="checkConfirm(this.value)">
+                  <span class="input-icon-right" onclick="togglePwd('confirmPassword',this)">👁️</span>
+                </div>
+                <span class="field-error" id="confirmPasswordErr"></span>
+              </div>
+            </div>
+
+            <!-- Document Upload -->
+            <div class="divider"></div>
+            <div class="form-section-title" style="padding-bottom:0.5rem;border-bottom:none;margin-bottom:0.75rem;">
+              <div class="section-icon">📁</div> Upload Documents
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;">
+              Upload ID proof, certificates, or other supporting documents (optional). Max 5MB per file. Accepted: JPG, PNG, PDF.
+            </p>
+            <div class="form-group">
+              <label class="form-label">Document Type</label>
+              <select id="docType" class="form-control">
+                <option value="id_proof">ID Proof (Aadhaar / PAN)</option>
+                <option value="certificate">Certificate</option>
+                <option value="marksheet">Mark Sheet</option>
+                <option value="other">Other Document</option>
+              </select>
+            </div>
+            <div class="file-upload-area" id="docUploadArea">
+              <input type="file" id="docInput" accept="image/jpeg,image/png,image/pdf,application/pdf" multiple>
+              <span class="file-upload-icon">📁</span>
+              <div class="file-upload-text">Drag &amp; drop files or <span>browse</span></div>
+              <div class="file-upload-sub">JPG, PNG, PDF — Max 5 MB each</div>
+            </div>
+            <div class="doc-list" id="docList"></div>
+            <span class="field-error" id="docErr"></span>
+
+            <div class="divider"></div>
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="agreeTerms">
+                I agree to the <a href="#" onclick="return false" style="color:var(--accent-light)">Terms &amp; Conditions</a> and declare that the information provided is true.
+              </label>
+              <span class="field-error" id="agreeTermsErr"></span>
+            </div>
+          </div>
+
+        </form>
+
+        <!-- Success Screen -->
+        <div class="success-screen" id="successScreen">
+          <div class="success-checkmark">✅</div>
+          <h2 style="margin-bottom:0.5rem">Registration Successful!</h2>
+          <p style="margin-bottom:1.5rem">Your student record has been created. You can now login to the portal.</p>
+          <div id="regSummary" style="text-align:left;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--r-md);padding:1.25rem;margin-bottom:1.5rem;font-size:0.875rem;"></div>
+          <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+            <a href="portal.html" class="btn btn-primary">View Portal →</a>
+            <a href="admin.html"  class="btn btn-secondary">Admin Panel →</a>
+            <button class="btn btn-secondary" onclick="resetForm()">Register Another</button>
+          </div>
+        </div>
+
+        <!-- Nav Buttons -->
+        <div class="form-nav" id="formNav">
+          <button class="btn btn-secondary" id="prevBtn" onclick="navigate(-1)" style="visibility:hidden">← Previous</button>
+          <span id="stepCounter" style="font-size:0.8rem;color:var(--text-muted)">Step 1 of 3</span>
+          <button class="btn btn-primary" id="nextBtn" onclick="navigate(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- ── Sidebar ── -->
+      <div class="reg-sidebar">
+        <div class="side-card">
+          <h4>📋 Registration Rules</h4>
+          <div class="rule-item"><span class="rule-icon">✅</span>Roll Number format: YYXXNNN (e.g., 24CS001)</div>
+          <div class="rule-item"><span class="rule-icon">✅</span>Use your institutional email (@kpriet.ac.in)</div>
+          <div class="rule-item"><span class="rule-icon">✅</span>Password: min 8 chars, upper, lower, number, special</div>
+          <div class="rule-item"><span class="rule-icon">✅</span>Profile photo: JPG/PNG/WEBP, max 2 MB</div>
+          <div class="rule-item"><span class="rule-icon">✅</span>Documents: JPG/PNG/PDF, max 5 MB each</div>
+          <div class="rule-item"><span class="rule-icon">⚠️</span>Duplicate Roll Number or Email not allowed</div>
+        </div>
+        <div class="side-card">
+          <h4>📚 Accepted File Types</h4>
+          <div class="rule-item"><span>🖼️</span>Images: JPEG, PNG, WEBP, GIF</div>
+          <div class="rule-item"><span>📄</span>Documents: PDF</div>
+          <div class="rule-item"><span>❌</span>No EXE, ZIP, or unknown types</div>
+        </div>
+        <div class="side-card" id="liveSummary">
+          <h4>👤 Your Details</h4>
+          <div id="summaryName"  class="rule-item" style="display:none"><span>📛</span><span id="sName">—</span></div>
+          <div id="summaryRoll"  class="rule-item" style="display:none"><span>🏷️</span><span id="sRoll">—</span></div>
+          <div id="summaryEmail" class="rule-item" style="display:none"><span>📧</span><span id="sEmail">—</span></div>
+          <div id="summaryCourse"class="rule-item" style="display:none"><span>🎓</span><span id="sCourse">—</span></div>
+          <p style="font-size:0.8rem;color:var(--text-muted)" id="summaryEmpty">Fill in the form to see a live summary here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// Registration Form — Multi-step with Validation
+// Q1: HTML forms, CSS styles, JS validation
+// ─────────────────────────────────────────────
+
+var currentStep  = 1;
+var totalSteps   = 3;
+var profileData  = null;   // base64 profile image
+var uploadedDocs = [];     // uploaded documents array
+
+// ── Step navigation ───────────────────────────
+function navigate(dir) {
+  if (dir === 1 && !validateStep(currentStep)) return;
+  currentStep += dir;
+  if (currentStep < 1) currentStep = 1;
+  if (currentStep > totalSteps) currentStep = totalSteps;
+  showStep(currentStep);
+  updateLiveSummary();
+}
+
+function showStep(n) {
+  // Update form sections
+  document.querySelectorAll('.form-section').forEach(function(s) { s.classList.remove('active'); });
+  var sec = document.getElementById('section' + n);
+  if (sec) sec.classList.add('active');
+
+  // Update step indicators
+  for (var i = 1; i <= totalSteps; i++) {
+    var stepEl  = document.getElementById('step' + i);
+    var numEl   = document.getElementById('stepNum' + i);
+    stepEl.classList.remove('active','done');
+    if (i < n)      { stepEl.classList.add('done');   numEl.textContent = '✓'; }
+    else if (i === n){ stepEl.classList.add('active'); numEl.textContent = i;  }
+    else              { numEl.textContent = i; }
+    // Lines
+    if (i < totalSteps) {
+      var line = document.getElementById('line' + i + (i+1));
+      if (line) line.classList.toggle('done', i < n);
+    }
+  }
+
+  // Buttons
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  prevBtn.style.visibility = n === 1 ? 'hidden' : 'visible';
+  if (n === totalSteps) {
+    nextBtn.textContent = '✅ Submit Registration';
+    nextBtn.onclick = submitForm;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.onclick = function() { navigate(1); };
+  }
+  document.getElementById('stepCounter').textContent = 'Step ' + n + ' of ' + totalSteps;
+}
+
+// ── Step Validators ───────────────────────────
+function validateStep(n) {
+  var ok = true;
+  if (n === 1) {
+    var name    = document.getElementById('fullName').value.trim();
+    var dob     = document.getElementById('dob').value;
+    var gender  = document.getElementById('gender').value;
+    var phone   = document.getElementById('phone').value.trim();
+    var email   = document.getElementById('email').value.trim();
+    var address = document.getElementById('address').value.trim();
+
+    if (!Validate.required(name) || name.length < 3) {
+      UI.setError('fullName','Name must be at least 3 characters'); ok=false;
+    } else { UI.clearError('fullName'); }
+
+    if (!Validate.required(dob)) {
+      UI.setError('dob','Date of birth is required'); ok=false;
+    } else { UI.clearError('dob'); }
+
+    if (!Validate.required(gender)) {
+      UI.setError('gender','Please select gender'); ok=false;
+    } else { UI.clearError('gender'); }
+
+    if (!Validate.phone(phone)) {
+      UI.setError('phone','Enter a valid 10-digit mobile number'); ok=false;
+    } else { UI.clearError('phone'); }
+
+    if (!Validate.email(email)) {
+      UI.setError('email','Enter a valid email address'); ok=false;
+    } else {
+      // Check duplicate email
+      if (DB.getStudentByEmail(email)) {
+        UI.setError('email','This email is already registered'); ok=false;
+      } else { UI.clearError('email'); }
+    }
+
+    if (!Validate.required(address)) {
+      UI.setError('address','Address is required'); ok=false;
+    } else { UI.clearError('address'); }
+  }
+
+  if (n === 2) {
+    var roll   = document.getElementById('rollNumber').value.trim().toUpperCase();
+    var course = document.getElementById('course').value;
+    var year   = document.getElementById('year').value;
+    var sec    = document.getElementById('section').value;
+
+    if (!Validate.rollNumber(roll)) {
+      UI.setError('rollNumber','Format: 2 digits + 2 letters + 3 digits (e.g. 24CS001)'); ok=false;
+    } else if (DB.getStudentByRoll(roll)) {
+      UI.setError('rollNumber','This roll number is already registered'); ok=false;
+    } else { UI.clearError('rollNumber'); }
+
+    if (!Validate.required(course)) {
+      UI.setError('course','Please select a course'); ok=false;
+    } else { UI.clearError('course'); }
+
+    if (!Validate.required(year)) {
+      UI.setError('year','Please select year'); ok=false;
+    } else { UI.clearError('year'); }
+
+    if (!Validate.required(sec)) {
+      UI.setError('section','Please select section'); ok=false;
+    } else { UI.clearError('section'); }
+  }
+
+  if (n === 3) {
+    var uname   = document.getElementById('regUsername').value.trim();
+    var pwd     = document.getElementById('regPassword').value;
+    var confirm = document.getElementById('confirmPassword').value;
+    var agreed  = document.getElementById('agreeTerms').checked;
+
+    if (!Validate.required(uname) || uname.length < 3) {
+      UI.setError('regUsername','Username must be at least 3 characters'); ok=false;
+    } else { UI.clearError('regUsername'); }
+
+    var pwdResult = Validate.password(pwd);
+    if (pwdResult.score < 3) {
+      UI.setError('regPassword','Password is too weak (need uppercase, lowercase, number)'); ok=false;
+    } else { UI.clearError('regPassword'); }
+
+    if (pwd !== confirm) {
+      UI.setError('confirmPassword','Passwords do not match'); ok=false;
+    } else if (Validate.required(confirm)) { UI.clearError('confirmPassword'); }
+
+    if (!agreed) {
+      UI.setError('agreeTerms','You must agree to the terms and conditions'); ok=false;
+    } else { UI.clearError('agreeTerms'); }
+  }
+  if (!ok) Toast.error('Please fix the highlighted errors before continuing.');
+  return ok;
+}
+
+// ── Profile photo handling ─────────────────────
+document.getElementById('photoInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  // Validate type
+  if (!Validate.fileType(file, ['image/jpeg','image/png','image/webp'])) {
+    document.getElementById('photoErr').textContent = 'Only JPG, PNG, WEBP allowed';
+    document.getElementById('photoErr').classList.add('show'); return;
+  }
+  // Validate size (max 2MB)
+  if (!Validate.fileSize(file, 2)) {
+    document.getElementById('photoErr').textContent = 'Photo must be under 2 MB';
+    document.getElementById('photoErr').classList.add('show'); return;
+  }
+  document.getElementById('photoErr').classList.remove('show');
+  FileUtils.readAsDataURL(file).then(function(dataURL) {
+    profileData = dataURL;
+    var img  = document.getElementById('photoPreview');
+    var icon = document.getElementById('photoIcon');
+    img.src  = dataURL;
+    img.style.display  = 'block';
+    icon.style.display = 'none';
+  });
+});
+
+// ── Document upload handling ───────────────────
+document.getElementById('docInput').addEventListener('change', function(e) {
+  Array.from(e.target.files).forEach(function(file) {
+    // Type validation
+    if (!Validate.fileType(file)) {
+      Toast.error('❌ ' + file.name + ' — unsupported file type'); return;
+    }
+    // Size validation
+    if (!Validate.fileSize(file, 5)) {
+      Toast.error('❌ ' + file.name + ' — exceeds 5 MB limit'); return;
+    }
+    // Prevent duplicate file names
+    if (Validate.fileNameExists(file.name, uploadedDocs)) {
+      Toast.warning('⚠️ ' + file.name + ' is already added (prevents overwriting)'); return;
+    }
+    FileUtils.readAsDataURL(file).then(function(dataURL) {
+      var doc = {
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        data_url:  dataURL,
+        doc_type:  document.getElementById('docType').value
+      };
+      uploadedDocs.push(doc);
+      renderDocList();
+    });
+  });
+  this.value = ''; // reset input so same file can be re-added after removal
+});
+
+// Drag-and-drop support
+var dropArea = document.getElementById('docUploadArea');
+dropArea.addEventListener('dragover',  function(e) { e.preventDefault(); this.classList.add('drag-over'); });
+dropArea.addEventListener('dragleave', function()  { this.classList.remove('drag-over'); });
+dropArea.addEventListener('drop', function(e) {
+  e.preventDefault(); this.classList.remove('drag-over');
+  var dt = e.dataTransfer;
+  if (dt.files.length) document.getElementById('docInput').files = dt.files;
+  document.getElementById('docInput').dispatchEvent(new Event('change'));
+});
+
+function renderDocList() {
+  var list = document.getElementById('docList');
+  list.innerHTML = '';
+  uploadedDocs.forEach(function(doc, idx) {
+    var div = document.createElement('div');
+    div.className = 'file-preview';
+    var iconOrThumb = FileUtils.isImage(doc.file_type)
+      ? '<img src="' + doc.data_url + '" alt="preview">'
+      : '<div class="file-preview-icon">' + FileUtils.getIcon(doc.file_type) + '</div>';
+    div.innerHTML = iconOrThumb +
+      '<div class="file-preview-info">' +
+        '<div class="file-preview-name">' + doc.file_name + '</div>' +
+        '<div class="file-preview-size">' + FileUtils.formatSize(doc.file_size) + ' • ' + doc.doc_type.replace('_',' ') + '</div>' +
+      '</div>' +
+      '<button class="file-preview-remove" onclick="removeDoc(' + idx + ')" title="Remove">✕</button>';
+    list.appendChild(div);
+  });
+}
+function removeDoc(idx) {
+  uploadedDocs.splice(idx, 1);
+  renderDocList();
+}
+
+// ── Password strength checker ──────────────────
+function checkPwdStrength(val) {
+  var res    = Validate.password(val);
+  var bar    = document.getElementById('pwdStrength');
+  var fill   = document.getElementById('pwdFill');
+  var label  = document.getElementById('pwdLabel');
+  bar.style.display = val ? 'block' : 'none';
+  fill.className = 'strength-fill ' + res.strength;
+  label.textContent = res.label ? 'Strength: ' + res.label : '';
+  // Update requirement checklist
+  var checks = res.checks || [false,false,false,false,false];
+  var ids     = ['req-len','req-upper','req-lower','req-num','req-special'];
+  ids.forEach(function(id, i) {
+    document.getElementById(id).classList.toggle('met', !!checks[i]);
+  });
+}
+
+function checkConfirm(val) {
+  var pwd = document.getElementById('regPassword').value;
+  if (val && pwd !== val) {
+    UI.setError('confirmPassword','Passwords do not match');
+  } else if (val) {
+    UI.clearError('confirmPassword');
+  }
+}
+
+function togglePwd(id, icon) {
+  var input = document.getElementById(id);
+  input.type = input.type === 'password' ? 'text' : 'password';
+  icon.textContent = input.type === 'text' ? '🙈' : '👁️';
+}
+
+// ── Live summary sidebar ───────────────────────
+function updateLiveSummary() {
+  var name    = document.getElementById('fullName').value.trim();
+  var roll    = document.getElementById('rollNumber').value.trim();
+  var email   = document.getElementById('email').value.trim();
+  var course  = document.getElementById('course').value;
+  var empty   = document.getElementById('summaryEmpty');
+  var hasAny  = false;
+
+  function setSummary(id, valId, val) {
+    if (val) {
+      document.getElementById(id).style.display = 'flex';
+      document.getElementById(valId).textContent = val;
+      hasAny = true;
+    } else {
+      document.getElementById(id).style.display = 'none';
+    }
+  }
+  setSummary('summaryName',   'sName',   name);
+  setSummary('summaryRoll',   'sRoll',   roll.toUpperCase());
+  setSummary('summaryEmail',  'sEmail',  email);
+  setSummary('summaryCourse', 'sCourse', course);
+  empty.style.display = hasAny ? 'none' : '';
+}
+
+// ── Form submission ────────────────────────────
+function submitForm() {
+  if (!validateStep(3)) return;
+  var btn = document.getElementById('nextBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Registering…';
+
+  // Collect all form data
+  var studentData = {
+    name:         document.getElementById('fullName').value.trim(),
+    roll_number:  document.getElementById('rollNumber').value.trim().toUpperCase(),
+    email:        document.getElementById('email').value.trim(),
+    course:       document.getElementById('course').value,
+    year:         document.getElementById('year').value,
+    section:      document.getElementById('section').value,
+    phone:        document.getElementById('phone').value.trim(),
+    address:      document.getElementById('address').value.trim(),
+    dob:          document.getElementById('dob').value,
+    gender:       document.getElementById('gender').value,
+    hsc_percent:  document.getElementById('hscPercent').value,
+    adm_year:     document.getElementById('admYear').value,
+    profile_image:profileData || '',
+    documents:    uploadedDocs.map(function(d) {
+      return {
+        id:          Date.now() + Math.random(),
+        file_name:   d.file_name,
+        file_type:   d.file_type,
+        file_size:   d.file_size,
+        file_path:   d.data_url,
+        doc_type:    d.doc_type,
+        upload_date: new Date().toISOString()
+      };
+    })
+  };
+
+  // Simulate server-side INSERT (PHP PDO / JDBC) delay
+  setTimeout(function() {
+    try {
+      var student = DB.addStudent(studentData);
+      // Show success
+      document.getElementById('regFormCard').querySelector('.form-section.active').style.display = 'none';
+      document.getElementById('formNav').style.display = 'none';
+      document.getElementById('successScreen').classList.add('show');
+      document.getElementById('stepsBar').querySelectorAll('.step').forEach(function(s) { s.classList.add('done'); });
+      // Summary
+      document.getElementById('regSummary').innerHTML =
+        '<table style="width:100%;border-collapse:collapse;font-size:0.82rem">' +
+        '<tr><td style="color:var(--text-muted);padding:0.3rem 0;width:40%">Student ID</td><td><strong>#' + String(student.id).padStart(5,'0') + '</strong></td></tr>' +
+        '<tr><td style="color:var(--text-muted);padding:0.3rem 0">Name</td><td>' + student.name + '</td></tr>' +
+        '<tr><td style="color:var(--text-muted);padding:0.3rem 0">Roll Number</td><td>' + student.roll_number + '</td></tr>' +
+        '<tr><td style="color:var(--text-muted);padding:0.3rem 0">Course</td><td>' + student.course + '</td></tr>' +
+        '<tr><td style="color:var(--text-muted);padding:0.3rem 0">Documents</td><td>' + (student.documents||[]).length + ' uploaded</td></tr>' +
+        '</table>';
+      Toast.success('🎉 Registration successful! Welcome to KPR StudentHub.');
+    } catch(err) {
+      btn.disabled = false; btn.textContent = '✅ Submit Registration';
+      Toast.error('Registration failed: ' + err.message);
+    }
+  }, 1200);
+}
+
+function resetForm() {
+  location.reload();
+}
+
+// ── Real-time live summary listeners ──────────
+['fullName','rollNumber','email','course'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', updateLiveSummary);
+});
+</script>
+</body>
+</html>
